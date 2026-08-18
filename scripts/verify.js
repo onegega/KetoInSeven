@@ -19,6 +19,9 @@ const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'ketoweek-verify-'));
 
 function compile() {
   const config = path.join(OUT, 'tsconfig.json');
+  // Classic module resolution is all this needs, but TypeScript 6 requires an
+  // explicit opt-in to keep using it, and TypeScript 5 rejects that same flag.
+  const typescriptMajor = Number(require('typescript/package.json').version.split('.')[0]);
   fs.writeFileSync(
     config,
     JSON.stringify({
@@ -26,8 +29,7 @@ function compile() {
         strict: true,
         module: 'commonjs',
         moduleResolution: 'node10',
-        // Classic resolution is all this needs; TS 6 wants the opt-in to say so.
-        ignoreDeprecations: '6.0',
+        ...(typescriptMajor >= 6 ? { ignoreDeprecations: '6.0' } : {}),
         target: 'es2022',
         skipLibCheck: true,
         outDir: path.join(OUT, 'build'),

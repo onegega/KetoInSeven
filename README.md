@@ -49,14 +49,18 @@ Your phone and computer must be on the same Wi-Fi. If the office network blocks
 device-to-device traffic, run `npx expo start --tunnel` instead.
 
 **"Project is incompatible with this version of Expo Go."** Expo Go only runs
-the SDK it was built for, and this project is on **SDK 57**, which needs
-**iOS 16.4 or newer**. Update Expo Go from the App Store — search for it rather
-than trusting the Updates tab, which hides apps set to auto-update.
+the SDK it was built for. This project targets **Expo SDK 54** (React Native
+0.81, minimum **iOS 15.1**), which is what Expo Go client 1017756 carries.
 
-If the App Store shows "Open" instead of "Update", Expo Go is already current
-and your iPhone is below iOS 16.4, so no version of Expo Go on that device can
-run this project. Either update iOS or skip Expo Go and make a development
-build, which sets its own minimum and does not care what Expo Go supports.
+Check what your copy supports under Expo Go → Settings → App Info → Supported
+SDK. If that number is above 54 you are on a newer Expo Go than this project
+expects and can move the whole project forward; if it is below 54, update Expo
+Go from the App Store — search for it rather than trusting the Updates tab,
+which hides apps set to auto-update.
+
+The SDK is deliberately pinned rather than tracking the newest release, because
+Expo Go carries exactly one SDK and there is no point being ahead of it. A
+development or TestFlight build embeds its own copy and has no such limit.
 
 What you give up: it appears as a project inside Expo Go rather than as its own
 home-screen icon, it only runs while the dev server is up, and notification

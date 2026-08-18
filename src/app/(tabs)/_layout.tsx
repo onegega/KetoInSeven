@@ -1,4 +1,4 @@
-import { NativeTabs } from 'expo-router/unstable-native-tabs';
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs';
 import { useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
@@ -12,25 +12,25 @@ export default function TabsLayout() {
       backgroundColor={palette.background}
       iconColor={palette.textMuted}
       tintColor={palette.accent}
-      labelStyle={{ color: palette.textSecondary, selected: { color: palette.accent } }}>
+      labelStyle={{ color: palette.textSecondary }}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>This Week</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'calendar', selected: 'calendar' }} md="calendar_month" />
+        <Label>This Week</Label>
+        <Icon sf={{ default: 'calendar', selected: 'calendar' }} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="shopping">
-        <NativeTabs.Trigger.Label>Shopping</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'cart', selected: 'cart.fill' }} md="shopping_cart" />
+        <Label>Shopping</Label>
+        <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="saved">
-        <NativeTabs.Trigger.Label>Saved</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'heart', selected: 'heart.fill' }} md="favorite" />
+        <Label>Saved</Label>
+        <Icon sf={{ default: 'heart', selected: 'heart.fill' }} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="settings">
-        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} md="settings" />
+        <Label>Settings</Label>
+        <Icon sf={{ default: 'gearshape', selected: 'gearshape.fill' }} />
       </NativeTabs.Trigger>
     </NativeTabs>
   );
