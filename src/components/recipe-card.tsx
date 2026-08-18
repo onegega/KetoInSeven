@@ -1,5 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Radius, Spacing } from '@/constants/theme';
@@ -19,8 +20,21 @@ type RecipeCardProps = {
   onToggleCooked?: () => void;
 };
 
+/**
+ * Layout note: the `Pressable` under `Link asChild` deliberately carries no
+ * style of its own.
+ *
+ * `asChild` renders through Radix's `Slot`, which merges the child's `style`
+ * into its own with an object spread. Spreading a style *function* (the form
+ * `Pressable` uses for press state) yields `{}`, and spreading an *array*
+ * yields `{0: …, 1: …}` — either way the styles are silently dropped and the
+ * row collapses into a column on web. Only a plain object survives, which is
+ * too sharp an edge to build on, so all layout lives on the inner view and the
+ * press state is tracked by hand.
+ */
 export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCooked }: RecipeCardProps) {
   const theme = useTheme();
+  const [pressed, setPressed] = useState(false);
 
   return (
     <View
@@ -33,31 +47,35 @@ export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCo
         <Pressable
           accessibilityRole="link"
           accessibilityLabel={`${recipe.title}, ${recipe.macros.netCarbs} grams net carbs`}
-          style={({ pressed }) => [styles.pressArea, pressed && styles.pressed]}>
-          <View style={[styles.emojiTile, { backgroundColor: theme.accentSoft }]}>
-            <ThemedText style={styles.emoji}>{recipe.emoji}</ThemedText>
-          </View>
+          onPressIn={() => setPressed(true)}
+          onPressOut={() => setPressed(false)}>
+          <View style={[styles.pressArea, pressed && styles.pressed]}>
+            <View style={[styles.emojiTile, { backgroundColor: theme.accentSoft }]}>
+              <ThemedText style={styles.emoji}>{recipe.emoji}</ThemedText>
+            </View>
 
-          <View style={styles.body}>
-            {showSlot && (
-              <ThemedText type="small" themeColor="accent" style={styles.slot}>
-                {SLOT_LABELS[recipe.slot].toUpperCase()}
+            <View style={styles.body}>
+              {showSlot && (
+                <ThemedText type="small" themeColor="accent" style={styles.slot}>
+                  {SLOT_LABELS[recipe.slot].toUpperCase()}
+                </ThemedText>
+              )}
+
+              <ThemedText style={styles.title} numberOfLines={2}>
+                {recipe.title}
               </ThemedText>
-            )}
 
-            <ThemedText style={styles.title} numberOfLines={2}>
-              {recipe.title}
-            </ThemedText>
-
-            <View style={styles.metaRow}>
-              <Meta icon="time-outline" label={`${totalMinutes(recipe)} min`} />
-              <Meta icon="flame-outline" label={`${recipe.macros.calories} kcal`} />
-              <Meta icon="leaf-outline" label={`${recipe.macros.netCarbs}g net`} />
+              <View style={styles.metaRow}>
+                <Meta icon="time-outline" label={`${totalMinutes(recipe)} min`} />
+                <Meta icon="flame-outline" label={`${recipe.macros.calories} kcal`} />
+                <Meta icon="leaf-outline" label={`${recipe.macros.netCarbs}g net`} />
+              </View>
             </View>
           </View>
         </Pressable>
       </Link>
 
+      {/* Floated above the press area so the link stays one uninterrupted target. */}
       <View style={styles.actions}>
         <SaveButton recipeId={recipe.id} />
         {onToggleCooked && (
@@ -67,7 +85,7 @@ export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCo
             accessibilityLabel={cooked ? 'Mark as not cooked' : 'Mark as cooked'}
             hitSlop={12}
             onPress={onToggleCooked}
-            style={({ pressed }) => [styles.cookedButton, pressed && styles.pressed]}>
+            style={({ pressed: tapped }) => [styles.cookedButton, tapped && styles.pressed]}>
             <Ionicons
               name={cooked ? 'checkmark-circle' : 'ellipse-outline'}
               size={22}
@@ -93,20 +111,23 @@ function Meta({ icon, label }: { icon: React.ComponentProps<typeof Ionicons>['na
   );
 }
 
+/** Width reserved on the right of the press area for the floating actions. */
+const ACTIONS_GUTTER = 52;
+
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
     borderRadius: Radius.large,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingRight: Spacing.two,
+    // Anchors the absolutely positioned actions column.
+    position: 'relative',
   },
   cardCooked: { opacity: 0.55 },
   pressArea: {
-    flex: 1,
     flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: Spacing.three,
     padding: Spacing.three,
+    paddingRight: ACTIONS_GUTTER,
   },
   pressed: { opacity: 0.6 },
   emojiTile: {
@@ -123,6 +144,12 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.two + 4, marginTop: Spacing.one },
   meta: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   metaLabel: { fontSize: 12, lineHeight: 16 },
-  actions: { paddingTop: Spacing.three, gap: Spacing.two, alignItems: 'center' },
+  actions: {
+    position: 'absolute',
+    top: Spacing.three,
+    right: Spacing.two,
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
   cookedButton: { padding: 4 },
 });
