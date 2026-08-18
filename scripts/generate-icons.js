@@ -43,20 +43,42 @@ function chunk(type, data) {
   return Buffer.concat([length, body, crc]);
 }
 
-function encodePNG(size, pixels) {
+/**
+ * `alpha: false` writes a truecolour PNG with no alpha channel at all.
+ *
+ * That is not a size optimisation. Apple rejects an app icon that carries an
+ * alpha channel (ITMS-90717), even when every pixel in it is fully opaque, so
+ * the iOS icon has to be encoded without one.
+ */
+function encodePNG(size, pixels, alpha) {
+  const channels = alpha ? 4 : 3;
   const header = Buffer.alloc(13);
   header.writeUInt32BE(size, 0);
   header.writeUInt32BE(size, 4);
   header[8] = 8; // bit depth
-  header[9] = 6; // truecolour with alpha
+  header[9] = alpha ? 6 : 2; // truecolour with alpha, or truecolour
   // 10-12 stay zero: deflate, adaptive filtering, no interlace.
 
   // One filter byte (0 = None) in front of every scanline.
-  const raw = Buffer.alloc(size * (size * 4 + 1));
+  const stride = size * channels + 1;
+  const raw = Buffer.alloc(size * stride);
+
   for (let y = 0; y < size; y++) {
-    const rowStart = y * (size * 4 + 1);
+    const rowStart = y * stride;
     raw[rowStart] = 0;
-    pixels.copy(raw, rowStart + 1, y * size * 4, (y + 1) * size * 4);
+
+    if (alpha) {
+      pixels.copy(raw, rowStart + 1, y * size * 4, (y + 1) * size * 4);
+      continue;
+    }
+
+    for (let x = 0; x < size; x++) {
+      const from = (y * size + x) * 4;
+      const to = rowStart + 1 + x * 3;
+      raw[to] = pixels[from];
+      raw[to + 1] = pixels[from + 1];
+      raw[to + 2] = pixels[from + 2];
+    }
   }
 
   return Buffer.concat([
@@ -71,7 +93,7 @@ function encodePNG(size, pixels) {
  * Paints concentric circles onto a square canvas, sampling 3x3 per pixel so
  * the edges are antialiased rather than jagged.
  */
-function render(size, background, circles) {
+function render(size, background, circles, alpha) {
   const pixels = Buffer.alloc(size * size * 4);
   const centre = size / 2;
   const SAMPLES = 3;
@@ -104,7 +126,7 @@ function render(size, background, circles) {
     }
   }
 
-  return encodePNG(size, pixels);
+  return encodePNG(size, pixels, alpha);
 }
 
 // Innermost circle first — render() takes the first radius that contains the sample.
@@ -114,15 +136,18 @@ const avocado = [
 ];
 
 const targets = [
-  { file: 'icon.png', size: 1024, background: SKIN, circles: avocado },
-  { file: 'favicon.png', size: 64, background: SKIN, circles: avocado },
-  { file: 'splash-icon.png', size: 512, background: CLEAR, circles: avocado },
-  { file: 'android-icon-background.png', size: 1024, background: SKIN, circles: [] },
-  { file: 'android-icon-foreground.png', size: 1024, background: CLEAR, circles: avocado },
+  // The iOS icon must be opaque — see encodePNG.
+  { file: 'icon.png', size: 1024, background: SKIN, circles: avocado, alpha: false },
+  { file: 'favicon.png', size: 64, background: SKIN, circles: avocado, alpha: false },
+  { file: 'android-icon-background.png', size: 1024, background: SKIN, circles: [], alpha: false },
+  // These three are composited over something else, so they need transparency.
+  { file: 'splash-icon.png', size: 512, background: CLEAR, circles: avocado, alpha: true },
+  { file: 'android-icon-foreground.png', size: 1024, background: CLEAR, circles: avocado, alpha: true },
   {
     file: 'android-icon-monochrome.png',
     size: 1024,
     background: CLEAR,
+    alpha: true,
     circles: [
       { radius: 0.115, colour: CLEAR },
       { radius: 0.34, colour: WHITE },
@@ -131,7 +156,9 @@ const targets = [
 ];
 
 for (const target of targets) {
-  const png = render(target.size, target.background, target.circles);
+  const png = render(target.size, target.background, target.circles, target.alpha);
   fs.writeFileSync(path.join(OUT_DIR, target.file), png);
-  console.log(`wrote ${target.file} (${target.size}px, ${png.length} bytes)`);
+  console.log(
+    `wrote ${target.file} (${target.size}px, ${target.alpha ? 'RGBA' : 'RGB'}, ${png.length} bytes)`
+  );
 }

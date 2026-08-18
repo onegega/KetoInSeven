@@ -10,7 +10,10 @@
     "primaryColor": "#3F8F5B",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ketoweek.app"
+      "bundleIdentifier": "com.ketoweek.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.ketoweek.app",

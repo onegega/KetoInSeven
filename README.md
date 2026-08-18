@@ -73,23 +73,79 @@ When the build finishes, open the link it prints on the iPhone and install.
 
 ### 3. TestFlight — needs a paid Apple Developer account
 
-Better if you want the app on more than one device, or to share it.
+The real app, on your home screen, no dev server, no 7-day expiry. Builds run on
+Expo's servers, so this works from macOS, Windows or Linux.
+
+**As an internal tester on your own account there is no App Review.** The build
+is usable minutes after Apple finishes processing it. Beta App Review only
+applies to external testers — people outside your team, invited by public link.
+
+#### One-time setup
+
+1. Enrol in the [Apple Developer Program](https://developer.apple.com/programs/)
+   ($99/year). Enrolment can take a day or two to be approved.
+2. Create a free [Expo account](https://expo.dev/signup).
+3. Install the CLI and sign in:
+
+   ```bash
+   npm install -g eas-cli
+   eas login
+   ```
+
+#### Every build
 
 ```bash
 eas build --platform ios --profile production
 eas submit --platform ios --latest
 ```
 
-Then add yourself as an internal tester in App Store Connect. TestFlight builds
-last 90 days and do not need device UDIDs registered.
+The first `build` asks for your Apple ID and then creates the distribution
+certificate, provisioning profile and App Store Connect app record for you.
+Say yes when it offers — there is nothing to set up by hand in the Apple portal.
+Expect 15-25 minutes for the first build, less afterwards.
 
-### Before any real build
+`submit` uploads to App Store Connect. Apple then takes 5-15 minutes to process
+the binary before it appears in TestFlight.
 
-`app.json` sets `ios.bundleIdentifier` to `com.ketoweek.app`. It only has to be
-globally unique for App Store submission, but change it to something of your own
-(`com.yourname.ketoweek`) if you plan to go that far — changing it later makes
-Apple treat it as a different app, and the saved recipes and ticks on the old
-one will not carry over.
+#### Getting it onto your phone
+
+1. Install **TestFlight** from the App Store.
+2. In [App Store Connect](https://appstoreconnect.apple.com) → your app →
+   TestFlight → Internal Testing, create a group and add your Apple ID.
+3. Accept the invite email on the iPhone. TestFlight installs it.
+
+Builds expire after 90 days, so a long-lived install means rebuilding roughly
+quarterly.
+
+#### Two names Apple requires to be unique
+
+- **Bundle identifier** — `app.json` sets `ios.bundleIdentifier` to
+  `com.ketoweek.app`. It has to be unique across every app Apple knows about. If
+  registration fails because someone already holds it, change it to
+  `com.yourname.ketoweek` and rebuild.
+- **App Store Connect name** — must also be unique store-wide, so "KetoWeek" may
+  be taken. That name is only the App Store listing; the name under the icon on
+  your home screen comes from `expo.name` in `app.json` and can stay "KetoWeek"
+  regardless.
+
+Change the bundle identifier *before* you first install, not after. Apple treats
+a new identifier as a different app, so the saved recipes and shopping ticks on
+the old one will not carry over.
+
+#### Already handled for you
+
+- `ios.config.usesNonExemptEncryption` is set to `false` in `app.json`. The app
+  makes no network calls and uses no cryptography of its own, so this is
+  accurate, and it stops App Store Connect holding each build for a manual
+  export-compliance answer.
+- The app icon is generated without an alpha channel. Apple rejects icons that
+  carry one (ITMS-90717) even when every pixel is opaque.
+- `appVersionSource` is `remote` with `autoIncrement` on the production profile,
+  so EAS assigns a fresh build number each time. Apple refuses a build number it
+  has already seen.
+- `supportsTablet` is `true`, so this installs on an iPad too. If you ever
+  submit to the public App Store, that commits you to providing iPad
+  screenshots — set it to `false` in `app.json` to avoid that.
 
 ## How the weekly rotation works
 
