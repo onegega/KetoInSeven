@@ -19,30 +19,73 @@ fetched, so the app works on a plane and costs nothing to run.
 - **Settings** — dietary filters, a daily net-carb target, which meals to plan,
   which day the week starts on, and an optional weekly reminder.
 
-## Running it on your iPhone
+## Getting it onto your iPhone
 
-You need [Node](https://nodejs.org) 20+ and the **Expo Go** app from the App
-Store. A Mac and Xcode are *not* required for this path.
+There are three routes, and which one you want depends on whether you have a
+paid Apple Developer account ($99/year). Apple does not allow installing an app
+onto a device without one, except via Expo Go or a 7-day Xcode signature.
+
+### 1. Expo Go — free, about five minutes
+
+The app runs on your phone inside the Expo Go container. No Apple Developer
+account, no Mac, no build step. This is the fastest way to actually hold it.
+
+1. Install **Expo Go** from the App Store.
+2. On your computer, with [Node](https://nodejs.org) 20+ installed:
+
+   ```bash
+   git clone https://github.com/onegega/test.git ketoweek
+   cd ketoweek
+   npm install
+   npm start
+   ```
+3. Scan the QR code in the terminal with the iPhone camera.
+
+Your phone and computer must be on the same Wi-Fi. If the office network blocks
+device-to-device traffic, run `npx expo start --tunnel` instead.
+
+What you give up: it appears as a project inside Expo Go rather than as its own
+home-screen icon, it only runs while the dev server is up, and notification
+behaviour differs from a real build.
+
+### 2. EAS Build, installed over the air — needs a paid Apple Developer account
+
+This produces a real signed app with its own icon, installed from a link. The
+build runs on Expo's servers, so this works from macOS, Windows or Linux.
 
 ```bash
-npm install
-npm run ios      # or: npm start
+npm install -g eas-cli
+eas login                          # free Expo account
+eas build --platform ios --profile preview
 ```
 
-Scan the QR code from the terminal with your iPhone camera and it opens in Expo
-Go. Edits reload on save.
+EAS will ask for your Apple credentials and create the signing certificate and
+provisioning profile for you. It also has to register your iPhone's UDID —
+`eas device:create` walks you through it, and **the device must be registered
+before the build runs**, since ad-hoc provisioning bakes the device list into
+the binary.
 
-The weekly reminder is a scheduled local notification. Notification behaviour
-in Expo Go differs from a real build, so test reminders in a development build
-rather than trusting what Expo Go does with them:
+When the build finishes, open the link it prints on the iPhone and install.
+
+### 3. TestFlight — needs a paid Apple Developer account
+
+Better if you want the app on more than one device, or to share it.
 
 ```bash
-npx expo install --check      # confirm native module versions match the SDK
-npx eas build --platform ios  # needs an Expo account and an Apple developer account
+eas build --platform ios --profile production
+eas submit --platform ios --latest
 ```
 
-Before shipping anywhere real, change `ios.bundleIdentifier` in `app.json` from
-the placeholder `com.example.ketoweek` to your own.
+Then add yourself as an internal tester in App Store Connect. TestFlight builds
+last 90 days and do not need device UDIDs registered.
+
+### Before any real build
+
+`app.json` sets `ios.bundleIdentifier` to `com.ketoweek.app`. It only has to be
+globally unique for App Store submission, but change it to something of your own
+(`com.yourname.ketoweek`) if you plan to go that far — changing it later makes
+Apple treat it as a different app, and the saved recipes and ticks on the old
+one will not carry over.
 
 ## How the weekly rotation works
 

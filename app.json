@@ -10,10 +10,10 @@
     "primaryColor": "#3F8F5B",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.ketoweek"
+      "bundleIdentifier": "com.ketoweek.app"
     },
     "android": {
-      "package": "com.example.ketoweek",
+      "package": "com.ketoweek.app",
       "adaptiveIcon": {
         "backgroundColor": "#2F6B45",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -32,7 +32,9 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#2F6B45",
-          "dark": { "backgroundColor": "#0F120F" },
+          "dark": {
+            "backgroundColor": "#0F120F"
+          },
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 140
         }
