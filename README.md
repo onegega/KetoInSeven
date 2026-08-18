@@ -71,8 +71,12 @@ your checkout actually has:
 node -p "require('./node_modules/expo/package.json').version"
 ```
 
-If that disagrees with `package.json`, clear it out and reinstall — a plain
-`npm install` over an existing tree does not reliably downgrade:
+`npm run check-sdk` compares the two and prints the same thing; it also runs
+automatically before `npm start`, so a mismatched tree refuses to launch rather
+than failing later on the phone.
+
+If the two disagree, clear the tree out and reinstall — a plain `npm install`
+over an existing one does not reliably downgrade:
 
 ```bash
 rm -rf node_modules package-lock.json .expo

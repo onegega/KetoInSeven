@@ -39,6 +39,11 @@
     "ios": "expo start --ios",
     "android": "expo start --android",
     "web": "expo start --web",
+    "prestart": "node scripts/check-sdk.js",
+    "preios": "node scripts/check-sdk.js",
+    "preandroid": "node scripts/check-sdk.js",
+    "preweb": "node scripts/check-sdk.js",
+    "check-sdk": "node scripts/check-sdk.js",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
     "verify": "node scripts/verify.js"
