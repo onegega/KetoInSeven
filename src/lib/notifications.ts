@@ -15,12 +15,18 @@ Notifications.setNotificationHandler({
 });
 
 export async function requestPermission(): Promise<boolean> {
-  const existing = await Notifications.getPermissionsAsync();
-  if (existing.granted) return true;
-  if (!existing.canAskAgain) return false;
+  try {
+    const existing = await Notifications.getPermissionsAsync();
+    if (existing.granted) return true;
+    if (!existing.canAskAgain) return false;
 
-  const requested = await Notifications.requestPermissionsAsync();
-  return requested.granted;
+    const requested = await Notifications.requestPermissionsAsync();
+    return requested.granted;
+  } catch {
+    // Notification support varies by host app — Expo Go in particular is not
+    // the same as a real build. Treat "cannot ask" as "not granted".
+    return false;
+  }
 }
 
 /**
@@ -38,31 +44,38 @@ export async function syncWeeklyReminder(reminder: Reminder): Promise<boolean> {
   const granted = await requestPermission();
   if (!granted) return false;
 
-  if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync(CATEGORY, {
-      name: 'Weekly plan',
-      importance: Notifications.AndroidImportance.DEFAULT,
+  try {
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync(CATEGORY, {
+        name: 'Weekly plan',
+        importance: Notifications.AndroidImportance.DEFAULT,
+      });
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      identifier: CATEGORY,
+      content: {
+        title: 'Your keto week is ready 🥑',
+        body: 'Seven days of meals and a shopping list are waiting.',
+        data: { screen: 'plan' },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        // expo-notifications counts weekdays 1-7 from Sunday; JS Date uses 0-6.
+        weekday: reminder.weekday + 1,
+        hour: reminder.hour,
+        minute: reminder.minute,
+        channelId: CATEGORY,
+      },
     });
+
+    return true;
+  } catch {
+    // Scheduling can fail outright in host apps with partial notification
+    // support. Report it so the caller leaves the switch off, rather than
+    // letting the rejection surface as a crash from a settings toggle.
+    return false;
   }
-
-  await Notifications.scheduleNotificationAsync({
-    identifier: CATEGORY,
-    content: {
-      title: 'Your keto week is ready 🥑',
-      body: 'Seven days of meals and a shopping list are waiting.',
-      data: { screen: 'plan' },
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
-      // expo-notifications counts weekdays 1-7 from Sunday; JS Date uses 0-6.
-      weekday: reminder.weekday + 1,
-      hour: reminder.hour,
-      minute: reminder.minute,
-      channelId: CATEGORY,
-    },
-  });
-
-  return true;
 }
 
 export async function cancelWeeklyReminder(): Promise<void> {

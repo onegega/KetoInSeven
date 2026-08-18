@@ -34,11 +34,15 @@ account, no Mac, no build step. This is the fastest way to actually hold it.
 2. On your computer, with [Node](https://nodejs.org) 20+ installed:
 
    ```bash
-   git clone https://github.com/onegega/test.git ketoweek
+   git clone -b claude/keto-recipes-ios-app-25bxwz \
+     https://github.com/onegega/test.git ketoweek
    cd ketoweek
    npm install
    npm start
    ```
+
+   The `-b` matters: the app lives on that branch, and the default branch is
+   still empty.
 3. Scan the QR code in the terminal with the iPhone camera.
 
 Your phone and computer must be on the same Wi-Fi. If the office network blocks
