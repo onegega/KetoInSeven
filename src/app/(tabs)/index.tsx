@@ -12,7 +12,7 @@ import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { getRecipe } from '@/data/recipes';
 import type { Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { allPlanRecipes, dayMacros, sumMacros, type PlannedDay, type WeeklyPlan } from '@/lib/plan';
+import { averageDailyMacros, dayMacros, type PlannedDay, type WeeklyPlan } from '@/lib/plan';
 import { SLOT_LABELS } from '@/lib/preferences';
 import { useApp } from '@/store/app-provider';
 import {
@@ -34,14 +34,13 @@ export default function ThisWeekScreen() {
   );
 
   const plan = useMemo(() => planFor(weekStart), [planFor, weekStart]);
-  const weekRecipes = useMemo(() => allPlanRecipes(plan), [plan]);
-  const weekMacros = useMemo(() => sumMacros(weekRecipes), [weekRecipes]);
+  // Every figure on the summary card is a daily average, so they all come from
+  // one source rather than mixing a per-day headline with week-long totals.
+  const dailyMacros = useMemo(() => averageDailyMacros(plan), [plan]);
   const snack = plan.snackId ? getRecipe(plan.snackId) : undefined;
   const shuffles = shuffleCount(plan.weekId);
 
-  const averageNetCarbs = Math.round(
-    plan.days.reduce((total, day) => total + dayMacros(day).netCarbs, 0) / plan.days.length
-  );
+  const averageNetCarbs = Math.round(dailyMacros.netCarbs);
   const overBudget = averageNetCarbs > preferences.netCarbLimit;
   const daysOverLimit = plan.days.filter(
     (day) => dayMacros(day).netCarbs > preferences.netCarbLimit
@@ -85,7 +84,7 @@ export default function ThisWeekScreen() {
                 Average per day
               </ThemedText>
               <ThemedText style={styles.summaryValue}>
-                {Math.round(weekMacros.calories / plan.days.length)} kcal
+                {Math.round(dailyMacros.calories)} kcal
               </ThemedText>
             </View>
 
@@ -103,7 +102,7 @@ export default function ThisWeekScreen() {
             </View>
           </View>
 
-          <MacroBar macros={weekMacros} />
+          <MacroBar macros={dailyMacros} />
 
           <Pressable
             accessibilityRole="button"

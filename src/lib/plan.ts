@@ -135,6 +135,39 @@ export function sumMacros(recipes: Recipe[]): Macros {
   );
 }
 
+/**
+ * Mean macros for one day of the plan.
+ *
+ * Derived by averaging the days rather than by dividing the week's distinct
+ * recipes, because a week that repeats a recipe — which happens whenever the
+ * filters leave a slot with fewer than seven options — would otherwise
+ * undercount it.
+ */
+export function averageDailyMacros(plan: WeeklyPlan): Macros {
+  const days = Math.max(plan.days.length, 1);
+  const total = plan.days.reduce<Macros>(
+    (acc, day) => {
+      const macros = dayMacros(day);
+      return {
+        calories: acc.calories + macros.calories,
+        fat: acc.fat + macros.fat,
+        protein: acc.protein + macros.protein,
+        netCarbs: acc.netCarbs + macros.netCarbs,
+        fiber: acc.fiber + macros.fiber,
+      };
+    },
+    { ...EMPTY_MACROS }
+  );
+
+  return {
+    calories: total.calories / days,
+    fat: total.fat / days,
+    protein: total.protein / days,
+    netCarbs: total.netCarbs / days,
+    fiber: total.fiber / days,
+  };
+}
+
 export function planRecipes(day: PlannedDay): Recipe[] {
   return day.meals
     .map((meal) => getRecipe(meal.recipeId))

@@ -84,6 +84,8 @@ function run(api) {
     countItems,
     formatAmount,
     formatQuantity,
+    singulariseUnit,
+    averageDailyMacros,
     DEFAULT_PREFERENCES,
     DIET_ORDER,
     startOfWeek,
@@ -137,6 +139,21 @@ function run(api) {
     check(`no ${slot} repeats within the week`, new Set(picks).size === picks.length, picks.join(', '));
   }
 
+  // The summary card labels these "per day", so they have to actually be per
+  // day rather than week-long totals.
+  const daily = averageDailyMacros(plan);
+  const summed = plan.days.reduce((total, day) => total + dayMacros(day).calories, 0);
+  check(
+    'the daily average really is the mean of the days',
+    Math.abs(daily.calories - summed / plan.days.length) < 0.01,
+    `${daily.calories} vs ${summed / plan.days.length}`
+  );
+  check(
+    'daily average macros are per-day sized, not week-sized',
+    daily.fat < 200 && daily.protein < 200 && daily.netCarbs < 60,
+    `fat ${Math.round(daily.fat)}g protein ${Math.round(daily.protein)}g carbs ${Math.round(daily.netCarbs)}g`
+  );
+
   const carbs = plan.days.map((day) => Math.round(dayMacros(day).netCarbs));
   info(`daily net carbs on defaults: ${carbs.join(', ')} (target ${DEFAULT_PREFERENCES.netCarbLimit}g)`);
   check('no day exceeds the default target', carbs.every((value) => value <= DEFAULT_PREFERENCES.netCarbLimit));
@@ -172,6 +189,28 @@ function run(api) {
   check('no duplicated lines', new Set(keys).size === keys.length);
   check('quantities render as fractions', formatQuantity(0.5) === '½' && formatQuantity(1.5) === '1½' && formatQuantity(2) === '2');
   check('unmeasured ingredients keep their wording', formatAmount({ qty: null, unit: 'to taste' }) === 'to taste');
+
+  // A recipe writing "1 stick" and another writing "4 sticks" must not become
+  // two separate lines on the list.
+  const collisions = [];
+  for (const section of sections) {
+    const seen = new Map();
+    for (const item of section.items) {
+      const canonical = `${item.name}::${singulariseUnit(item.unit)}`;
+      if (seen.has(canonical)) collisions.push(`${item.name} (${seen.get(canonical)} / ${item.unit})`);
+      seen.set(canonical, item.unit);
+    }
+  }
+  check('singular and plural units merge into one line', collisions.length === 0, collisions.join(', '));
+  check(
+    'units agree in number with their quantity',
+    formatAmount({ qty: 1, unit: 'stick' }) === '1 stick' &&
+      formatAmount({ qty: 5, unit: 'stick' }) === '5 sticks' &&
+      formatAmount({ qty: 3, unit: 'small bunch' }) === '3 small bunches' &&
+      formatAmount({ qty: 2, unit: 'cloves' }) === '2 cloves' &&
+      formatAmount({ qty: 250, unit: 'g' }) === '250 g',
+    [1, 5].map((q) => formatAmount({ qty: q, unit: 'stick' })).join(' / ')
+  );
 
   const eggs = sections.flatMap((section) => section.items).find((item) => item.name === 'eggs');
   if (eggs) {

@@ -17,7 +17,58 @@ export type ShoppingSection = {
   items: ShoppingItem[];
 };
 
-const itemKey = (name: string, unit: string) => `${name}::${unit}`;
+/**
+ * Units that are counted rather than measured, and so have a plural form. The
+ * recipe files write whichever reads naturally in context ("2 cloves", "1
+ * clove"), which would otherwise split one ingredient across two shopping
+ * lines, so both the merge key and the display go through here.
+ */
+const COUNTABLE_UNITS = [
+  'clove',
+  'head',
+  'stick',
+  'sprig',
+  'rasher',
+  'bunch',
+  'fillet',
+  'slice',
+  'wedge',
+  'sheet',
+];
+
+/** "large heads" -> "large head". Only the final word is ever inflected. */
+export function singulariseUnit(unit: string): string {
+  const words = unit.trim().split(' ');
+  const last = words[words.length - 1].toLowerCase();
+
+  const singular = last.endsWith('es') && last.slice(0, -2).endsWith('ch')
+    ? last.slice(0, -2)
+    : last.endsWith('s')
+      ? last.slice(0, -1)
+      : last;
+
+  if (singular !== last && COUNTABLE_UNITS.includes(singular)) {
+    words[words.length - 1] = singular;
+    return words.join(' ');
+  }
+
+  return unit.trim();
+}
+
+/** "small bunch" with 3 of them -> "small bunches". */
+function pluraliseUnit(unit: string, qty: number): string {
+  if (qty <= 1) return unit;
+
+  const words = unit.split(' ');
+  const last = words[words.length - 1].toLowerCase();
+  if (!COUNTABLE_UNITS.includes(last)) return unit;
+
+  // Sibilant endings take -es; everything else in the list takes -s.
+  words[words.length - 1] = last.endsWith('ch') ? `${last}es` : `${last}s`;
+  return words.join(' ');
+}
+
+const itemKey = (name: string, unit: string) => `${name}::${singulariseUnit(unit)}`;
 
 /**
  * Rolls a set of recipes into one list, merging ingredients that share a name
@@ -45,7 +96,7 @@ export function buildShoppingList(recipes: Recipe[]): ShoppingSection[] {
       merged.set(key, {
         key,
         name: ingredient.name,
-        unit: ingredient.unit,
+        unit: singulariseUnit(ingredient.unit),
         qty: ingredient.qty,
         aisle: ingredient.aisle,
         usedIn: [recipe.title],
@@ -84,9 +135,12 @@ export function formatQuantity(qty: number): string {
   return String(Number(qty.toFixed(2)));
 }
 
-/** The full amount line, e.g. "250 g" or "4" or "to taste". */
+/** The full amount line, e.g. "250 g", "4", "3 small bunches" or "to taste". */
 export function formatAmount(item: Pick<ShoppingItem, 'qty' | 'unit'>): string {
   if (item.qty === null) return item.unit || '';
+
   const amount = formatQuantity(item.qty);
-  return item.unit ? `${amount} ${item.unit}` : amount;
+  const unit = pluraliseUnit(singulariseUnit(item.unit), item.qty);
+
+  return unit ? `${amount} ${unit}` : amount;
 }
