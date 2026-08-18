@@ -48,6 +48,16 @@ account, no Mac, no build step. This is the fastest way to actually hold it.
 Your phone and computer must be on the same Wi-Fi. If the office network blocks
 device-to-device traffic, run `npx expo start --tunnel` instead.
 
+**"Project is incompatible with this version of Expo Go."** Expo Go only runs
+the SDK it was built for, and this project is on **SDK 57**, which needs
+**iOS 16.4 or newer**. Update Expo Go from the App Store — search for it rather
+than trusting the Updates tab, which hides apps set to auto-update.
+
+If the App Store shows "Open" instead of "Update", Expo Go is already current
+and your iPhone is below iOS 16.4, so no version of Expo Go on that device can
+run this project. Either update iOS or skip Expo Go and make a development
+build, which sets its own minimum and does not care what Expo Go supports.
+
 What you give up: it appears as a project inside Expo Go rather than as its own
 home-screen icon, it only runs while the dev server is up, and notification
 behaviour differs from a real build.
