@@ -21,7 +21,7 @@ export default function RecipeScreen() {
 
   if (!recipe) {
     return (
-      <Screen edges={[]}>
+      <Screen edges={[]} underTabBar={false}>
         <EmptyState
           icon="restaurant-outline"
           title="Recipe not found"
@@ -32,7 +32,7 @@ export default function RecipeScreen() {
   }
 
   return (
-    <Screen edges={[]}>
+    <Screen edges={[]} underTabBar={false}>
       <Stack.Screen
         options={{
           headerRight: () => <SaveButton recipeId={recipe.id} size={24} />,
