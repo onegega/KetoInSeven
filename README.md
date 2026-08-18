@@ -132,6 +132,20 @@ Change the bundle identifier *before* you first install, not after. Apple treats
 a new identifier as a different app, so the saved recipes and shopping ticks on
 the old one will not carry over.
 
+#### Checking the config before you burn a cloud build
+
+A failed EAS build costs 20 minutes. This generates the native iOS project
+locally and fails fast if anything in `app.json` is wrong, without needing a Mac:
+
+```bash
+npx expo prebuild --platform ios --no-install
+rm -rf ios          # throw it away; the native folders are generated, not committed
+```
+
+It also rewrites the `ios` and `android` entries in `package.json` to
+`expo run:*`. Undo that with `git checkout package.json` — this project stays in
+the managed workflow, where EAS generates the native project at build time.
+
 #### Already handled for you
 
 - `ios.config.usesNonExemptEncryption` is set to `false` in `app.json`. The app
@@ -146,6 +160,11 @@ the old one will not carry over.
 - `supportsTablet` is `true`, so this installs on an iPad too. If you ever
   submit to the public App Store, that commits you to providing iPad
   screenshots — set it to `false` in `app.json` to avoid that.
+
+One thing you do have to do: the first `eas build` writes an `extra.eas.projectId`
+into `app.json`, linking the repo to a project on Expo's servers. Commit that
+change — without it, later builds create a second project instead of adding to
+this one.
 
 ## How the weekly rotation works
 
