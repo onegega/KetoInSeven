@@ -62,6 +62,30 @@ The SDK is deliberately pinned rather than tracking the newest release, because
 Expo Go carries exactly one SDK and there is no point being ahead of it. A
 development or TestFlight build embeds its own copy and has no such limit.
 
+**Still incompatible after pulling a change to the SDK?** Expo reads the SDK
+version from `node_modules/expo`, *not* from `package.json`, so pulling a commit
+that changes the pinned version has no effect until you reinstall. Check what
+your checkout actually has:
+
+```bash
+node -p "require('./node_modules/expo/package.json').version"
+```
+
+If that disagrees with `package.json`, clear it out and reinstall — a plain
+`npm install` over an existing tree does not reliably downgrade:
+
+```bash
+rm -rf node_modules package-lock.json .expo
+npm install
+npx expo start -c        # -c clears the Metro cache, which also holds the manifest
+```
+
+Then confirm before scanning anything:
+
+```bash
+npx expo config --type public | grep sdkVersion
+```
+
 What you give up: it appears as a project inside Expo Go rather than as its own
 home-screen icon, it only runs while the dev server is up, and notification
 behaviour differs from a real build.
