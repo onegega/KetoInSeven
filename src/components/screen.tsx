@@ -6,12 +6,14 @@ import { MaxContentWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /**
- * On iOS the tab bar is a real UITabBar along the bottom and costs nothing at
- * the top of a screen. The web renderer instead floats a fixed bar across the
- * top (24px down, 40px tall, above everything) and reserves no space for it, so
- * without this the first heading of every tab sits underneath it.
+ * The web tab bar is a fixed overlay that reserves no space, so screens have to
+ * leave room for it themselves. global.css moves it to the bottom of the
+ * viewport to match iOS, which is why this is bottom padding.
+ *
+ * On iOS the real UITabBar is already accounted for by BottomTabInset in each
+ * screen's scroll padding, so this is zero there.
  */
-const WEB_TAB_BAR_INSET = Platform.OS === 'web' ? 76 : 0;
+const WEB_TAB_BAR_INSET = Platform.OS === 'web' ? 72 : 0;
 
 type ScreenProps = {
   children: ReactNode;
@@ -38,5 +40,5 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   safeArea: { flex: 1, alignItems: 'center' },
   column: { flex: 1, width: '100%', maxWidth: MaxContentWidth },
-  tabBarInset: { paddingTop: WEB_TAB_BAR_INSET },
+  tabBarInset: { paddingBottom: WEB_TAB_BAR_INSET },
 });
