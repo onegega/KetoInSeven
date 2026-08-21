@@ -37,9 +37,18 @@ function compile() {
         types: [],
         paths: { '@/*': [path.join(ROOT, 'src', '*')] },
       },
-      include: [path.join(ROOT, 'src/lib/**/*.ts'), path.join(ROOT, 'src/data/**/*.ts')],
-      // Both reach for React Native APIs that do not exist under plain node.
-      exclude: [path.join(ROOT, 'src/lib/notifications.ts'), path.join(ROOT, 'src/lib/storage.ts')],
+      include: [
+        path.join(ROOT, 'src/lib/**/*.ts'),
+        path.join(ROOT, 'src/data/**/*.ts'),
+        path.join(ROOT, 'src/i18n/**/*.ts'),
+      ],
+      exclude: [
+        // These reach for React Native APIs that do not exist under plain node.
+        path.join(ROOT, 'src/lib/notifications.ts'),
+        path.join(ROOT, 'src/lib/storage.ts'),
+        // The React entry point; translate.ts carries the logic worth checking.
+        path.join(ROOT, 'src/i18n/index.ts'),
+      ],
     })
   );
 
@@ -54,6 +63,13 @@ function loadModules() {
   };
 
   return {
+    ...require(path.join(build, 'i18n/translate.js')),
+    ...require(path.join(build, 'i18n/locales.js')),
+    recipeLocales: {
+      ar: require(path.join(build, 'i18n/recipes/ar.js')).ar,
+      es: require(path.join(build, 'i18n/recipes/es.js')).es,
+      fr: require(path.join(build, 'i18n/recipes/fr.js')).fr,
+    },
     ...require(path.join(build, 'data/recipes/index.js')),
     ...require(path.join(build, 'lib/plan.js')),
     ...require(path.join(build, 'lib/shopping.js')),
@@ -220,6 +236,74 @@ function run(api) {
     info(`eggs merged to ${formatAmount(eggs)} across ${eggs.usedIn.length} recipes`);
   }
   info(`${countItems(sections)} lines across ${sections.length} aisles`);
+
+  heading('Translations');
+  const { DICTIONARIES, LOCALES, recipeLocales } = api;
+  const englishKeys = Object.keys(DICTIONARIES.en);
+
+  for (const locale of LOCALES.filter((l) => l !== 'en')) {
+    const keys = Object.keys(DICTIONARIES[locale]);
+    const missing = englishKeys.filter((k) => !(k in DICTIONARIES[locale]));
+    const extra = keys.filter((k) => !englishKeys.includes(k));
+    check(`${locale}: same keys as English`, missing.length === 0 && extra.length === 0,
+      [...missing.map((k) => `missing ${k}`), ...extra.map((k) => `extra ${k}`)].join(', '));
+
+    // A dropped {placeholder} silently renders the wrong sentence, so compare
+    // the sets rather than trusting the strings to look right.
+    const placeholders = (value) => (String(value).match(/\{(\w+)\}/g) || []).sort().join(',');
+    const mismatched = englishKeys.filter(
+      (k) => placeholders(DICTIONARIES.en[k]) !== placeholders(DICTIONARIES[locale][k])
+    );
+    check(`${locale}: placeholders preserved`, mismatched.length === 0, mismatched.join(', '));
+
+    const blank = englishKeys.filter((k) => !String(DICTIONARIES[locale][k]).trim());
+    check(`${locale}: no blank strings`, blank.length === 0, blank.join(', '));
+  }
+
+  heading('Recipe translation coverage');
+  const sourceIngredients = new Set();
+  const sourceUnits = new Set();
+  const sourceNotes = new Set();
+  const sourceTags = new Set();
+  for (const recipe of ALL_RECIPES) {
+    for (const ing of recipe.ingredients) {
+      sourceIngredients.add(ing.name);
+      sourceUnits.add(ing.unit);
+      if (ing.note) sourceNotes.add(ing.note);
+    }
+    for (const tag of recipe.tags) sourceTags.add(tag);
+  }
+
+  const pct = (have, total) => (total === 0 ? 100 : Math.round((have / total) * 100));
+
+  for (const [locale, data] of Object.entries(recipeLocales)) {
+    const counts = {
+      ingredients: [...sourceIngredients].filter((k) => data.ingredients[k]).length,
+      units: [...sourceUnits].filter((k) => data.units[k]).length,
+      notes: [...sourceNotes].filter((k) => data.notes[k]).length,
+      tags: [...sourceTags].filter((k) => data.tags[k]).length,
+      recipes: ALL_RECIPES.filter((r) => data.recipes[r.id]).length,
+    };
+    info(
+      `${locale}: ingredients ${pct(counts.ingredients, sourceIngredients.size)}% · ` +
+        `units ${pct(counts.units, sourceUnits.size)}% · ` +
+        `notes ${pct(counts.notes, sourceNotes.size)}% · ` +
+        `tags ${pct(counts.tags, sourceTags.size)}% · ` +
+        `recipes ${pct(counts.recipes, ALL_RECIPES.length)}%`
+    );
+
+    // A step list of the wrong length would render a mismatched mixture, so it
+    // is rejected outright rather than partially shown.
+    const wrongLength = ALL_RECIPES.filter(
+      (r) => data.recipes[r.id] && data.recipes[r.id].steps.length !== r.steps.length
+    ).map((r) => r.id);
+    check(`${locale}: translated step counts match the source`, wrongLength.length === 0, wrongLength.join(', '));
+
+    const emptyStrings = Object.entries(data.recipes)
+      .filter(([, v]) => !v.title.trim() || !v.blurb.trim() || v.steps.some((s) => !s.trim()))
+      .map(([k]) => k);
+    check(`${locale}: no blank recipe text`, emptyStrings.length === 0, emptyStrings.join(', '));
+  }
 
   heading('Week maths');
   check(

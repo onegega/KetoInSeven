@@ -8,7 +8,10 @@ export type ShoppingItem = {
   /** Null when the ingredient has no measurable amount ("to taste"). */
   qty: number | null;
   aisle: Aisle;
-  /** Recipes this line is needed for, shown as a subtitle. */
+  /**
+   * Ids of the recipes this line is needed for. Ids rather than titles, so the
+   * subtitle can be rendered in whatever language is selected.
+   */
   usedIn: string[];
 };
 
@@ -89,7 +92,7 @@ export function buildShoppingList(recipes: Recipe[]): ShoppingSection[] {
           existing.qty === null || ingredient.qty === null
             ? existing.qty ?? ingredient.qty
             : existing.qty + ingredient.qty;
-        if (!existing.usedIn.includes(recipe.title)) existing.usedIn.push(recipe.title);
+        if (!existing.usedIn.includes(recipe.id)) existing.usedIn.push(recipe.id);
         continue;
       }
 
@@ -99,11 +102,14 @@ export function buildShoppingList(recipes: Recipe[]): ShoppingSection[] {
         unit: singulariseUnit(ingredient.unit),
         qty: ingredient.qty,
         aisle: ingredient.aisle,
-        usedIn: [recipe.title],
+        usedIn: [recipe.id],
       });
     }
   }
 
+  // Sorted by the English name here only for a stable default; the screen
+  // re-sorts by the translated name so the list reads alphabetically in
+  // whichever language it is being shown in.
   return AISLES.map((aisle) => ({
     aisle,
     items: [...merged.values()]
@@ -135,12 +141,21 @@ export function formatQuantity(qty: number): string {
   return String(Number(qty.toFixed(2)));
 }
 
-/** The full amount line, e.g. "250 g", "4", "3 small bunches" or "to taste". */
-export function formatAmount(item: Pick<ShoppingItem, 'qty' | 'unit'>): string {
-  if (item.qty === null) return item.unit || '';
+/**
+ * The full amount line, e.g. "250 g", "4", "3 small bunches" or "to taste".
+ *
+ * `translateUnit` renders the unit in the selected language. Inflection runs on
+ * the English source first, so the plural rules above stay meaningful, and the
+ * already-inflected result is what gets looked up.
+ */
+export function formatAmount(
+  item: Pick<ShoppingItem, 'qty' | 'unit'>,
+  translateUnit: (unit: string) => string = (unit) => unit
+): string {
+  if (item.qty === null) return translateUnit(item.unit) || '';
 
   const amount = formatQuantity(item.qty);
-  const unit = pluraliseUnit(singulariseUnit(item.unit), item.qty);
+  const unit = translateUnit(pluraliseUnit(singulariseUnit(item.unit), item.qty));
 
   return unit ? `${amount} ${unit}` : amount;
 }

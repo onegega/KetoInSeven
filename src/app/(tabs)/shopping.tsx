@@ -8,6 +8,9 @@ import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useRecipeText, useTranslation, type Translator } from '@/i18n';
+import { AISLE_KEY } from '@/i18n/keys';
+import { getRecipe } from '@/data/recipes';
 import { allPlanRecipes } from '@/lib/plan';
 import { buildShoppingList, countItems, formatAmount, type ShoppingItem } from '@/lib/shopping';
 import { useApp } from '@/store/app-provider';
@@ -15,6 +18,8 @@ import { addDays, formatWeekRange, startOfWeek } from '@/lib/week';
 
 export default function ShoppingScreen() {
   const theme = useTheme();
+  const { t, meta } = useTranslation();
+  const recipeText = useRecipeText();
   const { preferences, planFor, isChecked, toggleChecked, clearChecked } = useApp();
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0);
 
@@ -24,7 +29,17 @@ export default function ShoppingScreen() {
   );
 
   const plan = useMemo(() => planFor(weekStart), [planFor, weekStart]);
-  const sections = useMemo(() => buildShoppingList(allPlanRecipes(plan)), [plan]);
+  const sections = useMemo(() => {
+    // Re-sorted by the translated name so the list still reads alphabetically
+    // in the selected language rather than in English order.
+    const built = buildShoppingList(allPlanRecipes(plan));
+    return built.map((section) => ({
+      ...section,
+      items: [...section.items].sort((a, b) =>
+        recipeText.ingredientName(a.name).localeCompare(recipeText.ingredientName(b.name), meta.tag)
+      ),
+    }));
+  }, [plan, recipeText, meta.tag]);
 
   const total = countItems(sections);
   const done = sections.reduce(
@@ -37,20 +52,23 @@ export default function ShoppingScreen() {
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Shopping list</ThemedText>
+          <ThemedText style={styles.title}>{t('shopping.title')}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            {formatWeekRange(weekStart)} · everything for {plan.days.length} days
+            {t('shopping.subtitle', {
+              range: formatWeekRange(weekStart, t),
+              days: plan.days.length,
+            })}
           </ThemedText>
         </View>
 
         <View style={[styles.segmented, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
           <SegmentButton
-            label="This week"
+            label={t('shopping.thisWeek')}
             active={weekOffset === 0}
             onPress={() => setWeekOffset(0)}
           />
           <SegmentButton
-            label="Next week"
+            label={t('shopping.nextWeek')}
             active={weekOffset === 1}
             onPress={() => setWeekOffset(1)}
           />
@@ -58,18 +76,16 @@ export default function ShoppingScreen() {
 
         <View style={[styles.progress, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <View style={styles.progressRow}>
-            <ThemedText type="smallBold">
-              {done} of {total} picked up
-            </ThemedText>
+            <ThemedText type="smallBold">{t('shopping.progress', { done, total })}</ThemedText>
 
             {done > 0 && (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Clear all ticks"
+                accessibilityLabel={t('shopping.resetLabel')}
                 hitSlop={8}
                 onPress={() => clearChecked(plan.weekId)}>
                 <ThemedText type="small" themeColor="accent">
-                  Reset
+                  {t('shopping.reset')}
                 </ThemedText>
               </Pressable>
             )}
@@ -88,14 +104,14 @@ export default function ShoppingScreen() {
         {sections.length === 0 ? (
           <EmptyState
             icon="cart-outline"
-            title="Nothing to buy"
-            body="Turn at least one meal back on in Settings and the list will fill itself in."
+            title={t('shopping.emptyTitle')}
+            body={t('shopping.emptyBody')}
           />
         ) : (
           sections.map((section) => (
             <View key={section.aisle} style={styles.section}>
               <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
-                {section.aisle.toUpperCase()}
+                {t(AISLE_KEY[section.aisle]).toUpperCase()}
               </ThemedText>
 
               <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -103,6 +119,15 @@ export default function ShoppingScreen() {
                   <ShoppingRow
                     key={item.key}
                     item={item}
+                    t={t}
+                    name={recipeText.ingredientName(item.name)}
+                    usedIn={item.usedIn
+                      .map((id) => {
+                        const used = getRecipe(id);
+                        return used ? recipeText.title(used) : id;
+                      })
+                      .join(' · ')}
+                    amount={formatAmount(item, recipeText.unit)}
                     checked={isChecked(plan.weekId, item.key)}
                     onToggle={() => {
                       if (Platform.OS !== 'web') void Haptics.selectionAsync();
@@ -122,23 +147,30 @@ export default function ShoppingScreen() {
 
 function ShoppingRow({
   item,
+  t,
+  name,
+  usedIn,
+  amount,
   checked,
   onToggle,
   isLast,
 }: {
   item: ShoppingItem;
+  t: Translator;
+  name: string;
+  usedIn: string;
+  amount: string;
   checked: boolean;
   onToggle: () => void;
   isLast: boolean;
 }) {
   const theme = useTheme();
-  const amount = formatAmount(item);
 
   return (
     <Pressable
       accessibilityRole="checkbox"
       accessibilityState={{ checked }}
-      accessibilityLabel={`${item.name}, ${amount}`}
+      accessibilityLabel={`${name}, ${amount}`}
       onPress={onToggle}
       style={({ pressed }) => [
         styles.row,
@@ -155,10 +187,10 @@ function ShoppingRow({
         <ThemedText
           type="small"
           style={[styles.itemName, checked && { textDecorationLine: 'line-through', color: theme.textMuted }]}>
-          {item.name}
+          {name}
         </ThemedText>
         <ThemedText type="small" themeColor="textMuted" style={styles.usedIn} numberOfLines={1}>
-          {item.usedIn.join(' · ')}
+          {usedIn}
         </ThemedText>
       </View>
 

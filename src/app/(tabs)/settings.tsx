@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { Alert, I18nManager, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
@@ -7,37 +7,67 @@ import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { ALL_RECIPES } from '@/data/recipes';
 import type { DietTag, MealSlot } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import {
-  CARB_LIMIT_OPTIONS,
-  DIET_LABELS,
-  DIET_ORDER,
-  SLOT_LABELS,
-  type Reminder,
-} from '@/lib/preferences';
+import { LOCALES, LOCALE_META, translate, useT, type Locale, type UIKey } from '@/i18n';
+import { DAY_SHORT_KEY, DIET_KEY, SLOT_KEY } from '@/i18n/keys';
+import { CARB_LIMIT_OPTIONS, DIET_ORDER, type Reminder } from '@/lib/preferences';
 import { useApp } from '@/store/app-provider';
-import { DAY_SHORT } from '@/lib/week';
 
 const PLANNABLE_SLOTS: MealSlot[] = ['breakfast', 'lunch', 'dinner'];
 const REMINDER_TIMES = [7, 9, 12, 17, 19];
 
 export default function SettingsScreen() {
+  const t = useT();
   const { preferences, updatePreferences } = useApp();
+
+  /**
+   * Switching between a left-to-right and a right-to-left language flips the
+   * whole layout, which React Native only applies on a fresh launch. The alert
+   * is deliberately rendered in the language just chosen, not the one being
+   * left, so it is readable to whoever asked for the change.
+   */
+  const changeLanguage = (next: Locale) => {
+    if (next === preferences.locale) return;
+
+    const directionChanges = LOCALE_META[preferences.locale].rtl !== LOCALE_META[next].rtl;
+    updatePreferences({ locale: next });
+
+    if (directionChanges) {
+      I18nManager.allowRTL(LOCALE_META[next].rtl);
+      I18nManager.forceRTL(LOCALE_META[next].rtl);
+      Alert.alert(translate(next, 'alert.restartTitle'), translate(next, 'alert.restartBody'));
+    }
+  };
 
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <ThemedText style={styles.title}>Settings</ThemedText>
+          <ThemedText style={styles.title}>{t('settings.title')}</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            Changing anything here reshuffles the week to match.
+            {t('settings.subtitle')}
           </ThemedText>
         </View>
 
-        <Section title="DIETARY FILTERS" footer="Only recipes matching every filter are planned.">
+        <Section title={t('settings.language')} footer={t('settings.languageFooter')}>
+          <View style={styles.optionRow}>
+            {LOCALES.map((locale) => (
+              <OptionPill
+                key={locale}
+                label={LOCALE_META[locale].nativeName}
+                active={preferences.locale === locale}
+                onPress={() => changeLanguage(locale)}
+              />
+            ))}
+          </View>
+        </Section>
+
+        <Section
+          title={t('settings.dietaryFilters')}
+          footer={t('settings.dietaryFiltersFooter')}>
           {DIET_ORDER.map((tag, index) => (
             <SwitchRow
               key={tag}
-              label={DIET_LABELS[tag]}
+              label={t(DIET_KEY[tag])}
               value={preferences.diet.includes(tag)}
               isLast={index === DIET_ORDER.length - 1}
               onChange={(enabled) => updatePreferences({ diet: toggleTag(preferences.diet, tag, enabled) })}
@@ -45,14 +75,12 @@ export default function SettingsScreen() {
           ))}
         </Section>
 
-        <Section
-          title="DAILY NET CARBS"
-          footer="Recipes are picked to fit this budget across the day. If too few match, the limit is loosened for that meal and the week says so.">
+        <Section title={t('settings.dailyNetCarbs')} footer={t('settings.dailyNetCarbsFooter')}>
           <View style={styles.optionRow}>
             {CARB_LIMIT_OPTIONS.map((limit) => (
               <OptionPill
                 key={limit}
-                label={`${limit}g`}
+                label={t('settings.carbLimit', { count: limit })}
                 active={preferences.netCarbLimit === limit}
                 onPress={() => updatePreferences({ netCarbLimit: limit })}
               />
@@ -60,12 +88,12 @@ export default function SettingsScreen() {
           </View>
         </Section>
 
-        <Section title="MEALS TO PLAN">
+        <Section title={t('settings.mealsToPlan')}>
           <View style={styles.optionRow}>
             {PLANNABLE_SLOTS.map((slot) => (
               <OptionPill
                 key={slot}
-                label={SLOT_LABELS[slot]}
+                label={t(SLOT_KEY[slot])}
                 active={preferences.meals.includes(slot)}
                 onPress={() => {
                   const next = toggleSlot(preferences.meals, slot);
@@ -78,22 +106,22 @@ export default function SettingsScreen() {
           </View>
 
           <SwitchRow
-            label="Add a snack of the week"
+            label={t('settings.addSnack')}
             value={preferences.includeSnack}
             isLast
             onChange={(includeSnack) => updatePreferences({ includeSnack })}
           />
         </Section>
 
-        <Section title="WEEK STARTS ON">
+        <Section title={t('settings.weekStartsOn')}>
           <View style={styles.optionRow}>
             <OptionPill
-              label="Monday"
+              label={t('settings.monday')}
               active={preferences.weekStartsOn === 1}
               onPress={() => updatePreferences({ weekStartsOn: 1 })}
             />
             <OptionPill
-              label="Sunday"
+              label={t('settings.sunday')}
               active={preferences.weekStartsOn === 0}
               onPress={() => updatePreferences({ weekStartsOn: 0 })}
             />
@@ -102,11 +130,10 @@ export default function SettingsScreen() {
 
         <ReminderSection />
 
-        <Section title="ABOUT">
+        <Section title={t('settings.about')}>
           <View style={styles.aboutRow}>
             <ThemedText type="small" themeColor="textSecondary">
-              {ALL_RECIPES.length} recipes bundled with the app. Everything works offline — no
-              account, no API key, no network calls.
+              {t('settings.aboutBody', { count: ALL_RECIPES.length })}
             </ThemedText>
           </View>
         </Section>
@@ -116,6 +143,7 @@ export default function SettingsScreen() {
 }
 
 function ReminderSection() {
+  const t = useT();
   const { preferences, setReminder } = useApp();
   const { reminder } = preferences;
   const [pending, setPending] = useState(false);
@@ -126,19 +154,14 @@ function ReminderSection() {
     setPending(false);
 
     if (!scheduled) {
-      Alert.alert(
-        'Notifications are off',
-        'Turn on notifications for KetoWeek in the Settings app to get the weekly reminder.'
-      );
+      Alert.alert(t('alert.notificationsOffTitle'), t('alert.notificationsOffBody'));
     }
   };
 
   return (
-    <Section
-      title="WEEKLY REMINDER"
-      footer="A local notification — nothing leaves the device.">
+    <Section title={t('settings.weeklyReminder')} footer={t('settings.reminderFooter')}>
       <SwitchRow
-        label="Remind me when the new week lands"
+        label={t('settings.reminderToggle')}
         value={reminder.enabled}
         disabled={pending}
         isLast={!reminder.enabled}
@@ -148,10 +171,10 @@ function ReminderSection() {
       {reminder.enabled && (
         <>
           <View style={styles.optionRow}>
-            {DAY_SHORT.map((day, index) => (
+            {DAY_SHORT_KEY.map((key: UIKey, index: number) => (
               <OptionPill
-                key={day}
-                label={day}
+                key={key}
+                label={t(key)}
                 active={reminder.weekday === index}
                 onPress={() => void applyReminder({ weekday: index })}
               />

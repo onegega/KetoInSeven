@@ -1,4 +1,5 @@
 import type { DietTag, MealSlot } from '@/data/types';
+import { DEFAULT_LOCALE, type Locale } from '@/i18n/locales';
 import type { WeekStartDay } from '@/lib/week';
 
 export type Reminder = {
@@ -10,6 +11,8 @@ export type Reminder = {
 };
 
 export type Preferences = {
+  /** Interface language, and the language recipes are shown in. */
+  locale: Locale;
   weekStartsOn: WeekStartDay;
   /** Diet flags every planned recipe must carry. */
   diet: DietTag[];
@@ -23,21 +26,13 @@ export type Preferences = {
 };
 
 export const DEFAULT_PREFERENCES: Preferences = {
+  locale: DEFAULT_LOCALE,
   weekStartsOn: 1,
   diet: [],
   netCarbLimit: 25,
   meals: ['breakfast', 'lunch', 'dinner'],
   includeSnack: true,
   reminder: { enabled: false, weekday: 0, hour: 9, minute: 0 },
-};
-
-export const DIET_LABELS: Record<DietTag, string> = {
-  dairyFree: 'Dairy-free',
-  nutFree: 'Nut-free',
-  eggFree: 'Egg-free',
-  porkFree: 'No pork',
-  seafoodFree: 'No seafood',
-  vegetarian: 'Vegetarian',
 };
 
 export const DIET_ORDER: DietTag[] = [
@@ -48,13 +43,6 @@ export const DIET_ORDER: DietTag[] = [
   'seafoodFree',
   'vegetarian',
 ];
-
-export const SLOT_LABELS: Record<MealSlot, string> = {
-  breakfast: 'Breakfast',
-  lunch: 'Lunch',
-  dinner: 'Dinner',
-  snack: 'Snack',
-};
 
 export const CARB_LIMIT_OPTIONS = [15, 20, 25, 30, 40];
 

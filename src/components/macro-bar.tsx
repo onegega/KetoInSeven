@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import type { Macros } from '@/data/types';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useT } from '@/i18n';
 
 import { ThemedText } from './themed-text';
 
@@ -24,6 +25,7 @@ function caloricSplit(macros: Macros) {
 
 export function MacroBar({ macros, showLegend = true }: { macros: Macros; showLegend?: boolean }) {
   const theme = useTheme();
+  const t = useT();
   const split = caloricSplit(macros);
 
   return (
@@ -36,9 +38,15 @@ export function MacroBar({ macros, showLegend = true }: { macros: Macros; showLe
 
       {showLegend && (
         <View style={styles.legend}>
-          <LegendDot color={theme.fat} label={`Fat ${Math.round(macros.fat)}g`} />
-          <LegendDot color={theme.protein} label={`Protein ${Math.round(macros.protein)}g`} />
-          <LegendDot color={theme.carb} label={`Net carbs ${Math.round(macros.netCarbs)}g`} />
+          <LegendDot color={theme.fat} label={t('macro.fat', { count: Math.round(macros.fat) })} />
+          <LegendDot
+            color={theme.protein}
+            label={t('macro.protein', { count: Math.round(macros.protein) })}
+          />
+          <LegendDot
+            color={theme.carb}
+            label={t('macro.netCarbs', { count: Math.round(macros.netCarbs) })}
+          />
         </View>
       )}
     </View>

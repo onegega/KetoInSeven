@@ -1,9 +1,15 @@
-/** Week maths, all in the device's local timezone. */
+/**
+ * Week maths, all in the device's local timezone.
+ *
+ * The formatting helpers take a translator rather than owning month and day
+ * names, so the same date renders in whichever language is selected without
+ * this module knowing anything about locales.
+ */
+
+import { DAY_KEY, MONTH_KEY } from '@/i18n/keys';
+import type { Translator } from '@/i18n/translate';
 
 export type WeekStartDay = 0 | 1; // Sunday | Monday
-
-export const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-export const DAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const MS_PER_DAY = 86_400_000;
 
@@ -57,22 +63,20 @@ export function daysFromToday(date: Date): number {
   return Math.round((startOfDay(date).getTime() - startOfDay(new Date()).getTime()) / MS_PER_DAY);
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-export function formatDayAndMonth(date: Date): string {
-  return `${date.getDate()} ${MONTHS[date.getMonth()]}`;
+export function formatDayAndMonth(date: Date, t: Translator): string {
+  return `${date.getDate()} ${t(MONTH_KEY[date.getMonth()])}`;
 }
 
 /** e.g. "17 Aug – 23 Aug". */
-export function formatWeekRange(weekStart: Date): string {
-  return `${formatDayAndMonth(weekStart)} – ${formatDayAndMonth(addDays(weekStart, 6))}`;
+export function formatWeekRange(weekStart: Date, t: Translator): string {
+  return `${formatDayAndMonth(weekStart, t)} – ${formatDayAndMonth(addDays(weekStart, 6), t)}`;
 }
 
 /** "Today", "Tomorrow", "Yesterday", or the weekday name. */
-export function relativeDayLabel(date: Date): string {
+export function relativeDayLabel(date: Date, t: Translator): string {
   const delta = daysFromToday(date);
-  if (delta === 0) return 'Today';
-  if (delta === 1) return 'Tomorrow';
-  if (delta === -1) return 'Yesterday';
-  return DAY_NAMES[date.getDay()];
+  if (delta === 0) return t('day.today');
+  if (delta === 1) return t('day.tomorrow');
+  if (delta === -1) return t('day.yesterday');
+  return t(DAY_KEY[date.getDay()]);
 }

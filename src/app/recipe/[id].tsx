@@ -12,11 +12,14 @@ import { Radius, Spacing } from '@/constants/theme';
 import { getRecipe } from '@/data/recipes';
 import { totalMinutes, type Ingredient, type Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { DIET_LABELS, SLOT_LABELS } from '@/lib/preferences';
+import { useRecipeText, useT, type RecipeTranslator, type Translator } from '@/i18n';
+import { DIET_KEY, SLOT_KEY } from '@/i18n/keys';
 import { formatAmount } from '@/lib/shopping';
 
 export default function RecipeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const t = useT();
+  const recipeText = useRecipeText();
   const recipe = getRecipe(id);
 
   if (!recipe) {
@@ -24,8 +27,8 @@ export default function RecipeScreen() {
       <Screen edges={[]} underTabBar={false}>
         <EmptyState
           icon="restaurant-outline"
-          title="Recipe not found"
-          body="This recipe is no longer in the library. Head back to the weekly plan to pick another."
+          title={t('recipe.notFoundTitle')}
+          body={t('recipe.notFoundBody')}
         />
       </Screen>
     );
@@ -40,16 +43,24 @@ export default function RecipeScreen() {
       />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Hero recipe={recipe} />
-        <MacroCard recipe={recipe} />
-        <Ingredients recipe={recipe} />
-        <Method recipe={recipe} />
+        <Hero recipe={recipe} t={t} recipeText={recipeText} />
+        <MacroCard recipe={recipe} t={t} />
+        <Ingredients recipe={recipe} t={t} recipeText={recipeText} />
+        <Method recipe={recipe} t={t} recipeText={recipeText} />
       </ScrollView>
     </Screen>
   );
 }
 
-function Hero({ recipe }: { recipe: Recipe }) {
+function Hero({
+  recipe,
+  t,
+  recipeText,
+}: {
+  recipe: Recipe;
+  t: Translator;
+  recipeText: RecipeTranslator;
+}) {
   const theme = useTheme();
 
   return (
@@ -59,61 +70,76 @@ function Hero({ recipe }: { recipe: Recipe }) {
       </View>
 
       <ThemedText type="small" themeColor="accent" style={styles.slot}>
-        {SLOT_LABELS[recipe.slot].toUpperCase()}
+        {t(SLOT_KEY[recipe.slot]).toUpperCase()}
       </ThemedText>
 
-      <ThemedText style={styles.title}>{recipe.title}</ThemedText>
+      <ThemedText style={styles.title}>{recipeText.title(recipe)}</ThemedText>
 
       <ThemedText type="small" themeColor="textSecondary" style={styles.blurb}>
-        {recipe.blurb}
+        {recipeText.blurb(recipe)}
       </ThemedText>
 
       <View style={styles.metaRow}>
-        <Meta icon="people-outline" label={`Serves ${recipe.servings}`} />
-        <Meta icon="time-outline" label={`${totalMinutes(recipe)} min total`} />
-        <Meta icon="flame-outline" label={`${recipe.cookMinutes} min cooking`} />
+        <Meta icon="people-outline" label={t('recipe.serves', { count: recipe.servings })} />
+        <Meta icon="time-outline" label={t('recipe.totalMinutes', { count: totalMinutes(recipe) })} />
+        <Meta
+          icon="flame-outline"
+          label={t('recipe.cookingMinutes', { count: recipe.cookMinutes })}
+        />
       </View>
 
       <View style={styles.chipRow}>
         {recipe.tags.map((tag) => (
-          <Chip key={tag} label={tag} />
+          <Chip key={tag} label={recipeText.tag(tag)} />
         ))}
         {recipe.diet.map((tag) => (
-          <Chip key={tag} label={DIET_LABELS[tag]} tone="accent" />
+          <Chip key={tag} label={t(DIET_KEY[tag])} tone="accent" />
         ))}
       </View>
     </View>
   );
 }
 
-function MacroCard({ recipe }: { recipe: Recipe }) {
+function MacroCard({ recipe, t }: { recipe: Recipe; t: Translator }) {
   const theme = useTheme();
 
   return (
     <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
       <View style={styles.macroHeader}>
-        <ThemedText type="smallBold">Per serving</ThemedText>
+        <ThemedText type="smallBold">{t('recipe.perServing')}</ThemedText>
         <ThemedText type="smallBold" themeColor="accent">
-          {recipe.macros.calories} kcal
+          {t('card.kcal', { count: recipe.macros.calories })}
         </ThemedText>
       </View>
 
       <MacroBar macros={recipe.macros} />
 
       <ThemedText type="small" themeColor="textMuted" style={styles.macroFootnote}>
-        {`${recipe.macros.netCarbs}g net carbs · ${recipe.macros.fiber}g fibre · figures are estimates for one of ${recipe.servings} servings.`}
+        {t('recipe.macroFootnote', {
+          netCarbs: recipe.macros.netCarbs,
+          fiber: recipe.macros.fiber,
+          servings: recipe.servings,
+        })}
       </ThemedText>
     </View>
   );
 }
 
-function Ingredients({ recipe }: { recipe: Recipe }) {
+function Ingredients({
+  recipe,
+  t,
+  recipeText,
+}: {
+  recipe: Recipe;
+  t: Translator;
+  recipeText: RecipeTranslator;
+}) {
   const theme = useTheme();
 
   return (
     <View style={styles.section}>
       <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
-        INGREDIENTS
+        {t('recipe.ingredients')}
       </ThemedText>
 
       <View style={[styles.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
@@ -121,6 +147,7 @@ function Ingredients({ recipe }: { recipe: Recipe }) {
           <IngredientRow
             key={`${ingredient.name}-${ingredient.unit}`}
             ingredient={ingredient}
+            recipeText={recipeText}
             isLast={index === recipe.ingredients.length - 1}
           />
         ))}
@@ -129,8 +156,17 @@ function Ingredients({ recipe }: { recipe: Recipe }) {
   );
 }
 
-function IngredientRow({ ingredient, isLast }: { ingredient: Ingredient; isLast: boolean }) {
+function IngredientRow({
+  ingredient,
+  recipeText,
+  isLast,
+}: {
+  ingredient: Ingredient;
+  recipeText: RecipeTranslator;
+  isLast: boolean;
+}) {
   const theme = useTheme();
+  const translated = recipeText.ingredient(ingredient);
 
   return (
     <View
@@ -140,33 +176,41 @@ function IngredientRow({ ingredient, isLast }: { ingredient: Ingredient; isLast:
       ]}>
       <View style={styles.ingredientBody}>
         <ThemedText type="small" style={styles.ingredientName}>
-          {ingredient.name}
+          {translated.name}
         </ThemedText>
-        {ingredient.note && (
+        {translated.note && (
           <ThemedText type="small" themeColor="textMuted" style={styles.ingredientNote}>
-            {ingredient.note}
+            {translated.note}
           </ThemedText>
         )}
       </View>
 
       <ThemedText type="smallBold" themeColor="textSecondary">
-        {formatAmount(ingredient)}
+        {formatAmount(ingredient, recipeText.unit)}
       </ThemedText>
     </View>
   );
 }
 
-function Method({ recipe }: { recipe: Recipe }) {
+function Method({
+  recipe,
+  t,
+  recipeText,
+}: {
+  recipe: Recipe;
+  t: Translator;
+  recipeText: RecipeTranslator;
+}) {
   const theme = useTheme();
 
   return (
     <View style={styles.section}>
       <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
-        METHOD
+        {t('recipe.method')}
       </ThemedText>
 
       <View style={styles.steps}>
-        {recipe.steps.map((step, index) => (
+        {recipeText.steps(recipe).map((step, index) => (
           <View key={step.slice(0, 24)} style={styles.step}>
             <View style={[styles.stepNumber, { backgroundColor: theme.accentSoft }]}>
               <ThemedText type="smallBold" themeColor="accent">

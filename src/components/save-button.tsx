@@ -4,17 +4,19 @@ import { Platform, Pressable, StyleSheet } from 'react-native';
 
 import { Radius } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useT } from '@/i18n';
 import { useApp } from '@/store/app-provider';
 
 export function SaveButton({ recipeId, size = 22 }: { recipeId: string; size?: number }) {
   const theme = useTheme();
+  const t = useT();
   const { isSaved, toggleSaved } = useApp();
   const saved = isSaved(recipeId);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={saved ? 'Remove from saved recipes' : 'Save recipe'}
+      accessibilityLabel={t(saved ? 'card.unsave' : 'card.save')}
       // Icon-only controls are well under the 44pt minimum on their own.
       hitSlop={12}
       onPress={() => {

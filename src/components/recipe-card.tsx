@@ -6,7 +6,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { Radius, Spacing } from '@/constants/theme';
 import { totalMinutes, type Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
-import { SLOT_LABELS } from '@/lib/preferences';
+import { useRecipeText, useT } from '@/i18n';
+import { SLOT_KEY } from '@/i18n/keys';
 
 import { SaveButton } from './save-button';
 import { ThemedText } from './themed-text';
@@ -34,7 +35,10 @@ type RecipeCardProps = {
  */
 export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCooked }: RecipeCardProps) {
   const theme = useTheme();
+  const t = useT();
+  const recipeText = useRecipeText();
   const [pressed, setPressed] = useState(false);
+  const title = recipeText.title(recipe);
 
   return (
     <View
@@ -46,7 +50,7 @@ export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCo
       <Link href={{ pathname: '/recipe/[id]', params: { id: recipe.id } }} asChild>
         <Pressable
           accessibilityRole="link"
-          accessibilityLabel={`${recipe.title}, ${recipe.macros.netCarbs} grams net carbs`}
+          accessibilityLabel={t('card.a11yRecipe', { title, count: recipe.macros.netCarbs })}
           onPressIn={() => setPressed(true)}
           onPressOut={() => setPressed(false)}>
           <View style={[styles.pressArea, pressed && styles.pressed]}>
@@ -57,18 +61,18 @@ export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCo
             <View style={styles.body}>
               {showSlot && (
                 <ThemedText type="small" themeColor="accent" style={styles.slot}>
-                  {SLOT_LABELS[recipe.slot].toUpperCase()}
+                  {t(SLOT_KEY[recipe.slot]).toUpperCase()}
                 </ThemedText>
               )}
 
               <ThemedText style={styles.title} numberOfLines={2}>
-                {recipe.title}
+                {title}
               </ThemedText>
 
               <View style={styles.metaRow}>
-                <Meta icon="time-outline" label={`${totalMinutes(recipe)} min`} />
-                <Meta icon="flame-outline" label={`${recipe.macros.calories} kcal`} />
-                <Meta icon="leaf-outline" label={`${recipe.macros.netCarbs}g net`} />
+                <Meta icon="time-outline" label={t('card.minutes', { count: totalMinutes(recipe) })} />
+                <Meta icon="flame-outline" label={t('card.kcal', { count: recipe.macros.calories })} />
+                <Meta icon="leaf-outline" label={t('card.netCarbs', { count: recipe.macros.netCarbs })} />
               </View>
             </View>
           </View>
@@ -82,7 +86,7 @@ export function RecipeCard({ recipe, showSlot = true, cooked = false, onToggleCo
           <Pressable
             accessibilityRole="checkbox"
             accessibilityState={{ checked: cooked }}
-            accessibilityLabel={cooked ? 'Mark as not cooked' : 'Mark as cooked'}
+            accessibilityLabel={t(cooked ? 'card.markNotCooked' : 'card.markCooked')}
             hitSlop={12}
             onPress={onToggleCooked}
             style={({ pressed: tapped }) => [styles.cookedButton, tapped && styles.pressed]}>

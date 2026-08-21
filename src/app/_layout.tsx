@@ -3,9 +3,11 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { I18nManager } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { LOCALE_META } from '@/i18n';
 import { AppProvider, useApp } from '@/store/app-provider';
 
 SplashScreen.preventAutoHideAsync();
@@ -41,7 +43,24 @@ export default function RootLayout() {
 }
 
 function RootStack() {
-  const { hydrated } = useApp();
+  const { hydrated, preferences } = useApp();
+
+  /**
+   * React Native only reads the RTL flag at launch, so this cannot flip the
+   * layout that is already on screen — Settings tells the user to reopen the
+   * app when they pick a direction-changing language. What it does is make the
+   * flag agree with the stored preference, so the *next* launch is correct even
+   * if the two ever drift, such as after reinstalling.
+   */
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const shouldBeRTL = LOCALE_META[preferences.locale].rtl;
+    if (I18nManager.isRTL === shouldBeRTL) return;
+
+    I18nManager.allowRTL(shouldBeRTL);
+    I18nManager.forceRTL(shouldBeRTL);
+  }, [hydrated, preferences.locale]);
 
   // Hold the splash screen until stored preferences are in, so the first frame
   // is never a default-preferences week that then jumps to the real one.

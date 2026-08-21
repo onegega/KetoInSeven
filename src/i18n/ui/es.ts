@@ -1,0 +1,151 @@
+import type { UIDictionary } from './en';
+
+/** Spanish. Typed as UIDictionary, so omitting any key is a compile error. */
+export const es: UIDictionary = {
+  'tab.thisWeek': 'Esta semana',
+  'tab.shopping': 'Compra',
+  'tab.saved': 'Guardadas',
+  'tab.settings': 'Ajustes',
+
+  'slot.breakfast': 'Desayuno',
+  'slot.lunch': 'Comida',
+  'slot.dinner': 'Cena',
+  'slot.snack': 'Tentempié',
+
+  'day.today': 'Hoy',
+  'day.tomorrow': 'Mañana',
+  'day.yesterday': 'Ayer',
+  'day.sunday': 'Domingo',
+  'day.monday': 'Lunes',
+  'day.tuesday': 'Martes',
+  'day.wednesday': 'Miércoles',
+  'day.thursday': 'Jueves',
+  'day.friday': 'Viernes',
+  'day.saturday': 'Sábado',
+  'dayShort.sunday': 'Dom',
+  'dayShort.monday': 'Lun',
+  'dayShort.tuesday': 'Mar',
+  'dayShort.wednesday': 'Mié',
+  'dayShort.thursday': 'Jue',
+  'dayShort.friday': 'Vie',
+  'dayShort.saturday': 'Sáb',
+
+  'month.1': 'Ene',
+  'month.2': 'Feb',
+  'month.3': 'Mar',
+  'month.4': 'Abr',
+  'month.5': 'May',
+  'month.6': 'Jun',
+  'month.7': 'Jul',
+  'month.8': 'Ago',
+  'month.9': 'Sep',
+  'month.10': 'Oct',
+  'month.11': 'Nov',
+  'month.12': 'Dic',
+
+  'week.thisWeek': 'ESTA SEMANA',
+  'week.nextWeek': 'SEMANA QUE VIENE',
+  'week.weekOf': 'SEMANA DEL',
+  'week.averagePerDay': 'Media por día',
+  'week.netCarbs': 'Carbos netos',
+  'week.kcal': '{count} kcal',
+  'week.shuffle': 'Cambiar esta semana',
+  'week.shuffleAgain': 'Cambiar otra vez ({count})',
+  'week.previousWeek': 'Semana anterior',
+  'week.nextWeekLabel': 'Semana siguiente',
+  'week.snackOfTheWeek': 'TENTEMPIÉ DE LA SEMANA',
+  'week.netCarbsChip': '{count} g de carbos netos',
+  'week.noticeDietIgnored':
+    'Ninguna receta de {slots} cumple todos los filtros activos, así que las de {slots} de esta semana los ignoran. Desactiva un filtro y se arregla.',
+  'week.noticeOverTargetOne':
+    '1 día supera tu objetivo de {limit} g de carbos netos: hay muy pocas recetas que cumplan tus filtros para quedarse por debajo todos los días.',
+  'week.noticeOverTargetMany':
+    '{count} días superan tu objetivo de {limit} g de carbos netos: hay muy pocas recetas que cumplan tus filtros para quedarse por debajo todos los días.',
+
+  'macro.fat': 'Grasa {count} g',
+  'macro.protein': 'Proteína {count} g',
+  'macro.netCarbs': 'Carbos netos {count} g',
+
+  'card.minutes': '{count} min',
+  'card.kcal': '{count} kcal',
+  'card.netCarbs': '{count} g netos',
+  'card.a11yRecipe': '{title}, {count} gramos de carbos netos',
+  'card.save': 'Guardar receta',
+  'card.unsave': 'Quitar de guardadas',
+  'card.markCooked': 'Marcar como cocinada',
+  'card.markNotCooked': 'Desmarcar como cocinada',
+
+  'shopping.title': 'Lista de la compra',
+  'shopping.subtitle': '{range} · todo para {days} días',
+  'shopping.thisWeek': 'Esta semana',
+  'shopping.nextWeek': 'Semana que viene',
+  'shopping.progress': '{done} de {total} comprado',
+  'shopping.reset': 'Reiniciar',
+  'shopping.resetLabel': 'Borrar todas las marcas',
+  'shopping.emptyTitle': 'Nada que comprar',
+  'shopping.emptyBody':
+    'Vuelve a activar al menos una comida en Ajustes y la lista se llenará sola.',
+
+  'aisle.produce': 'Frutas y verduras',
+  'aisle.meatSeafood': 'Carne y pescado',
+  'aisle.dairyEggs': 'Lácteos y huevos',
+  'aisle.pantry': 'Despensa',
+  'aisle.spices': 'Especias',
+  'aisle.frozen': 'Congelados',
+
+  'saved.title': 'Guardadas',
+  'saved.emptyHint': 'Toca el corazón de cualquier receta para guardarla aquí.',
+  'saved.countOne': '1 receta guardada',
+  'saved.countMany': '{count} recetas guardadas',
+  'saved.emptyTitle': 'Aún no hay recetas guardadas',
+  'saved.emptyBody':
+    'Los corazones que toques en el plan semanal aparecen aquí, agrupados por comida, para tener una favorita siempre a una pestaña de distancia.',
+
+  'settings.title': 'Ajustes',
+  'settings.subtitle': 'Cualquier cambio aquí vuelve a barajar la semana.',
+  'settings.language': 'IDIOMA',
+  'settings.languageFooter': 'Las recetas, los ingredientes y los pasos también se traducen.',
+  'settings.dietaryFilters': 'FILTROS DE DIETA',
+  'settings.dietaryFiltersFooter': 'Solo se planifican recetas que cumplan todos los filtros.',
+  'settings.dailyNetCarbs': 'CARBOS NETOS AL DÍA',
+  'settings.dailyNetCarbsFooter':
+    'Las recetas se eligen para caber en este límite a lo largo del día. Si hay muy pocas que encajen, el límite se relaja para esa comida y la semana lo indica.',
+  'settings.mealsToPlan': 'COMIDAS A PLANIFICAR',
+  'settings.addSnack': 'Añadir un tentempié de la semana',
+  'settings.weekStartsOn': 'LA SEMANA EMPIEZA EN',
+  'settings.monday': 'Lunes',
+  'settings.sunday': 'Domingo',
+  'settings.weeklyReminder': 'RECORDATORIO SEMANAL',
+  'settings.reminderToggle': 'Avisarme cuando llegue la semana nueva',
+  'settings.reminderFooter': 'Una notificación local: nada sale del dispositivo.',
+  'settings.about': 'ACERCA DE',
+  'settings.aboutBody':
+    '{count} recetas incluidas en la app. Todo funciona sin conexión: sin cuenta, sin clave de API, sin llamadas de red.',
+  'settings.carbLimit': '{count} g',
+
+  'diet.dairyFree': 'Sin lácteos',
+  'diet.nutFree': 'Sin frutos secos',
+  'diet.eggFree': 'Sin huevo',
+  'diet.porkFree': 'Sin cerdo',
+  'diet.seafoodFree': 'Sin pescado ni marisco',
+  'diet.vegetarian': 'Vegetariana',
+
+  'alert.notificationsOffTitle': 'Las notificaciones están desactivadas',
+  'alert.notificationsOffBody':
+    'Activa las notificaciones de KetoWeek en la app Ajustes para recibir el recordatorio semanal.',
+  'alert.restartTitle': 'Vuelve a abrir la app',
+  'alert.restartBody':
+    'El árabe se lee de derecha a izquierda. Cierra KetoWeek del todo y ábrela otra vez para girar la interfaz.',
+
+  'recipe.perServing': 'Por ración',
+  'recipe.serves': 'Para {count}',
+  'recipe.totalMinutes': '{count} min en total',
+  'recipe.cookingMinutes': '{count} min de cocción',
+  'recipe.ingredients': 'INGREDIENTES',
+  'recipe.method': 'ELABORACIÓN',
+  'recipe.macroFootnote':
+    '{netCarbs} g de carbos netos · {fiber} g de fibra · son cifras estimadas para una ración de {servings}.',
+  'recipe.notFoundTitle': 'Receta no encontrada',
+  'recipe.notFoundBody':
+    'Esta receta ya no está en la biblioteca. Vuelve al plan semanal para elegir otra.',
+};

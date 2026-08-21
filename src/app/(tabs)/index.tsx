@@ -13,7 +13,8 @@ import { getRecipe } from '@/data/recipes';
 import type { Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { averageDailyMacros, dayMacros, type PlannedDay, type WeeklyPlan } from '@/lib/plan';
-import { SLOT_LABELS } from '@/lib/preferences';
+import { useT, type Translator } from '@/i18n';
+import { SLOT_KEY } from '@/i18n/keys';
 import { useApp } from '@/store/app-provider';
 import {
   addDays,
@@ -25,6 +26,7 @@ import {
 
 export default function ThisWeekScreen() {
   const theme = useTheme();
+  const t = useT();
   const { preferences, planFor, shuffleWeek, shuffleCount, isCooked, toggleCooked } = useApp();
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -45,7 +47,7 @@ export default function ThisWeekScreen() {
   const daysOverLimit = plan.days.filter(
     (day) => dayMacros(day).netCarbs > preferences.netCarbLimit
   ).length;
-  const notice = weekNotice(plan, daysOverLimit, preferences.netCarbLimit);
+  const notice = weekNotice(plan, daysOverLimit, preferences.netCarbLimit, t);
 
   const onShuffle = () => {
     if (Platform.OS !== 'web') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -58,20 +60,20 @@ export default function ThisWeekScreen() {
         <View style={styles.header}>
           <View style={styles.headerText}>
             <ThemedText type="small" themeColor="accent" style={styles.eyebrow}>
-              {weekOffset === 0 ? 'THIS WEEK' : weekOffset === 1 ? 'NEXT WEEK' : 'WEEK OF'}
+              {t(weekOffset === 0 ? 'week.thisWeek' : weekOffset === 1 ? 'week.nextWeek' : 'week.weekOf')}
             </ThemedText>
-            <ThemedText style={styles.headerTitle}>{formatWeekRange(weekStart)}</ThemedText>
+            <ThemedText style={styles.headerTitle}>{formatWeekRange(weekStart, t)}</ThemedText>
           </View>
 
           <View style={styles.weekNav}>
             <NavButton
               icon="chevron-back"
-              label="Previous week"
+              label={t('week.previousWeek')}
               onPress={() => setWeekOffset((value) => value - 1)}
             />
             <NavButton
               icon="chevron-forward"
-              label="Next week"
+              label={t('week.nextWeekLabel')}
               onPress={() => setWeekOffset((value) => value + 1)}
             />
           </View>
@@ -81,16 +83,16 @@ export default function ThisWeekScreen() {
           <View style={styles.summaryTop}>
             <View>
               <ThemedText type="small" themeColor="textSecondary">
-                Average per day
+                {t('week.averagePerDay')}
               </ThemedText>
               <ThemedText style={styles.summaryValue}>
-                {Math.round(dailyMacros.calories)} kcal
+                {t('week.kcal', { count: Math.round(dailyMacros.calories) })}
               </ThemedText>
             </View>
 
             <View style={styles.carbBadgeWrap}>
               <ThemedText type="small" themeColor="textSecondary">
-                Net carbs
+                {t('week.netCarbs')}
               </ThemedText>
               <ThemedText
                 style={[styles.summaryValue, { color: overBudget ? theme.danger : theme.accent }]}>
@@ -115,7 +117,7 @@ export default function ThisWeekScreen() {
             ]}>
             <Ionicons name="shuffle" size={17} color={theme.accentText} />
             <ThemedText type="smallBold" style={{ color: theme.accentText }}>
-              {shuffles === 0 ? 'Shuffle this week' : `Shuffle again (${shuffles})`}
+              {shuffles === 0 ? t('week.shuffle') : t('week.shuffleAgain', { count: shuffles })}
             </ThemedText>
           </Pressable>
         </View>
@@ -141,6 +143,7 @@ export default function ThisWeekScreen() {
           <DaySection
             key={day.dateId}
             day={day}
+            t={t}
             netCarbLimit={preferences.netCarbLimit}
             isCooked={isCooked}
             onToggleCooked={toggleCooked}
@@ -150,7 +153,7 @@ export default function ThisWeekScreen() {
         {snack && (
           <View style={styles.section}>
             <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
-              SNACK OF THE WEEK
+              {t('week.snackOfTheWeek')}
             </ThemedText>
             <RecipeCard recipe={snack} />
           </View>
@@ -168,19 +171,20 @@ export default function ThisWeekScreen() {
 function weekNotice(
   plan: WeeklyPlan,
   daysOverLimit: number,
-  netCarbLimit: number
+  netCarbLimit: number,
+  t: Translator
 ): { message: string; serious: boolean } | null {
   if (plan.dietRelaxed.length > 0) {
-    const slots = plan.dietRelaxed.map((slot) => SLOT_LABELS[slot].toLowerCase()).join(' or ');
-    return {
-      message: `No ${slots} recipes match every filter you have on, so this week's ${slots} ignore them. Turning one filter off will fix it.`,
-      serious: true,
-    };
+    const slots = plan.dietRelaxed.map((slot) => t(SLOT_KEY[slot]).toLowerCase()).join(' / ');
+    return { message: t('week.noticeDietIgnored', { slots }), serious: true };
   }
 
   if (daysOverLimit > 0) {
     return {
-      message: `${daysOverLimit} ${daysOverLimit === 1 ? 'day goes' : 'days go'} over your ${netCarbLimit}g net carb target — too few recipes match your filters to stay under it every day.`,
+      message: t(
+        daysOverLimit === 1 ? 'week.noticeOverTargetOne' : 'week.noticeOverTargetMany',
+        { count: daysOverLimit, limit: netCarbLimit }
+      ),
       serious: false,
     };
   }
@@ -190,16 +194,17 @@ function weekNotice(
 
 type DaySectionProps = {
   day: PlannedDay;
+  t: Translator;
   netCarbLimit: number;
   isCooked: (dateId: string, slot: Recipe['slot']) => boolean;
   onToggleCooked: (dateId: string, slot: Recipe['slot']) => void;
 };
 
-function DaySection({ day, netCarbLimit, isCooked, onToggleCooked }: DaySectionProps) {
+function DaySection({ day, t, netCarbLimit, isCooked, onToggleCooked }: DaySectionProps) {
   const theme = useTheme();
   const macros = dayMacros(day);
   const over = macros.netCarbs > netCarbLimit;
-  const label = relativeDayLabel(day.date);
+  const label = relativeDayLabel(day.date, t);
 
   return (
     <View style={styles.section}>
@@ -209,11 +214,14 @@ function DaySection({ day, netCarbLimit, isCooked, onToggleCooked }: DaySectionP
             {label.toUpperCase()}
           </ThemedText>
           <ThemedText type="small" themeColor="textMuted">
-            {formatDayAndMonth(day.date)}
+            {formatDayAndMonth(day.date, t)}
           </ThemedText>
         </View>
 
-        <Chip label={`${Math.round(macros.netCarbs)}g net carbs`} tone={over ? 'neutral' : 'accent'} />
+        <Chip
+          label={t('week.netCarbsChip', { count: Math.round(macros.netCarbs) })}
+          tone={over ? 'neutral' : 'accent'}
+        />
       </View>
 
       <View style={[styles.dayRule, { backgroundColor: theme.border }]} />
