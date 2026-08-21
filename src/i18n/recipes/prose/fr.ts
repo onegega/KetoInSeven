@@ -3,6 +3,7 @@ import type { RecipeText } from '../types';
 import { frBreakfast } from './fr-breakfast';
 import { frLunch } from './fr-lunch';
 import { frDinner } from './fr-dinner';
+import { frSnack } from './fr-snack';
 
 /**
  * Per-recipe prose in fr, keyed by recipe id, assembled from one file per meal
@@ -16,4 +17,5 @@ export const frProse: Record<string, RecipeText> = {
   ...frBreakfast,
   ...frLunch,
   ...frDinner,
+  ...frSnack,
 };

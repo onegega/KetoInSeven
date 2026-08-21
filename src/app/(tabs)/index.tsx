@@ -96,9 +96,9 @@ export default function ThisWeekScreen() {
               </ThemedText>
               <ThemedText
                 style={[styles.summaryValue, { color: overBudget ? theme.danger : theme.accent }]}>
-                {averageNetCarbs}g
+                {t('week.netCarbsValue', { count: averageNetCarbs })}
                 <ThemedText type="small" themeColor="textMuted">
-                  {` / ${preferences.netCarbLimit}g`}
+                  {t('week.netCarbsTarget', { count: preferences.netCarbLimit })}
                 </ThemedText>
               </ThemedText>
             </View>

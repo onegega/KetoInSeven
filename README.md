@@ -16,8 +16,27 @@ fetched, so the app works on a plane and costs nothing to run.
   supermarket aisle, with quantities added up across recipes and ticks that
   persist. Switch between this week and next week to shop ahead.
 - **Saved** — tap the heart on any recipe to keep it, grouped by meal.
-- **Settings** — dietary filters, a daily net-carb target, which meals to plan,
-  which day the week starts on, and an optional weekly reminder.
+- **Settings** — language, dietary filters, a daily net-carb target, which meals
+  to plan, which day the week starts on, and an optional weekly reminder.
+
+## Languages
+
+English, Arabic, Spanish and French. Everything is translated, including recipe
+titles, ingredients, preparation notes and every method step — `npm run verify`
+fails if any string is left behind.
+
+English is the canonical data. Translations are looked up by the English source
+string, so diet filtering, shopping-list merging and the weekly plan seed all
+keep operating on English values: changing language never changes which recipes
+you get or how ingredients combine. Any missing translation falls back to
+English rather than rendering blank.
+
+Arabic reverses the layout. React Native only applies that at launch, so
+choosing it asks you to reopen the app.
+
+To add a language: add it to `src/i18n/locales.ts`, then create `ui/<code>.ts`
+(the compiler will list every key you still owe), `recipes/<code>.ts` for the
+ingredient lexicon, and `recipes/prose/<code>-<slot>.ts` for the recipe text.
 
 ## Getting it onto your iPhone
 

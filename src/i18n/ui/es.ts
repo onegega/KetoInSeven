@@ -49,6 +49,8 @@ export const es: UIDictionary = {
   'week.averagePerDay': 'Media por día',
   'week.netCarbs': 'Carbos netos',
   'week.kcal': '{count} kcal',
+  'week.netCarbsValue': '{count} g',
+  'week.netCarbsTarget': ' / {count} g',
   'week.shuffle': 'Cambiar esta semana',
   'week.shuffleAgain': 'Cambiar otra vez ({count})',
   'week.previousWeek': 'Semana anterior',

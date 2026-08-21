@@ -12,7 +12,13 @@ import { useRecipeText, useTranslation, type Translator } from '@/i18n';
 import { AISLE_KEY } from '@/i18n/keys';
 import { getRecipe } from '@/data/recipes';
 import { allPlanRecipes } from '@/lib/plan';
-import { buildShoppingList, countItems, formatAmount, type ShoppingItem } from '@/lib/shopping';
+import {
+  buildShoppingList,
+  capitaliseFirst,
+  countItems,
+  formatAmount,
+  type ShoppingItem,
+} from '@/lib/shopping';
 import { useApp } from '@/store/app-provider';
 import { addDays, formatWeekRange, startOfWeek } from '@/lib/week';
 
@@ -120,7 +126,7 @@ export default function ShoppingScreen() {
                     key={item.key}
                     item={item}
                     t={t}
-                    name={recipeText.ingredientName(item.name)}
+                    name={capitaliseFirst(recipeText.ingredientName(item.name))}
                     usedIn={item.usedIn
                       .map((id) => {
                         const used = getRecipe(id);
@@ -268,6 +274,6 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.6 },
   rowBody: { flex: 1, gap: 1 },
-  itemName: { fontWeight: '600', textTransform: 'capitalize' },
+  itemName: { fontWeight: '600' },
   usedIn: { fontSize: 11, lineHeight: 15 },
 });

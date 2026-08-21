@@ -14,7 +14,7 @@ import { totalMinutes, type Ingredient, type Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
 import { useRecipeText, useT, type RecipeTranslator, type Translator } from '@/i18n';
 import { DIET_KEY, SLOT_KEY } from '@/i18n/keys';
-import { formatAmount } from '@/lib/shopping';
+import { capitaliseFirst, formatAmount } from '@/lib/shopping';
 
 export default function RecipeScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -176,7 +176,7 @@ function IngredientRow({
       ]}>
       <View style={styles.ingredientBody}>
         <ThemedText type="small" style={styles.ingredientName}>
-          {translated.name}
+          {capitaliseFirst(translated.name)}
         </ThemedText>
         {translated.note && (
           <ThemedText type="small" themeColor="textMuted" style={styles.ingredientNote}>
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two + 2,
   },
   ingredientBody: { flex: 1, gap: 1 },
-  ingredientName: { fontWeight: '600', textTransform: 'capitalize' },
+  ingredientName: { fontWeight: '600' },
   ingredientNote: { fontSize: 11, lineHeight: 15 },
   steps: { gap: Spacing.three },
   step: { flexDirection: 'row', gap: Spacing.two + 4, alignItems: 'flex-start' },

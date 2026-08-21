@@ -55,6 +55,8 @@ export const ar: UIDictionary = {
   'week.averagePerDay': 'المتوسط اليومي',
   'week.netCarbs': 'الكربوهيدرات الصافية',
   'week.kcal': '{count} سعرة',
+  'week.netCarbsValue': '{count} غ',
+  'week.netCarbsTarget': ' / {count} غ',
   'week.shuffle': 'أعد ترتيب الأسبوع',
   'week.shuffleAgain': 'أعد الترتيب ({count})',
   'week.previousWeek': 'الأسبوع السابق',

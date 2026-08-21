@@ -285,6 +285,25 @@ function run(api) {
       tags: [...sourceTags].filter((k) => data.tags[k]).length,
       recipes: ALL_RECIPES.filter((r) => data.recipes[r.id]).length,
     };
+    // Coverage is a hard check, not a report: an untranslated string falls back
+    // to English silently, which is exactly the kind of gap nobody notices.
+    check(
+      `${locale}: every recipe string is translated`,
+      counts.ingredients === sourceIngredients.size &&
+        counts.units === sourceUnits.size &&
+        counts.notes === sourceNotes.size &&
+        counts.tags === sourceTags.size &&
+        counts.recipes === ALL_RECIPES.length,
+      [
+        ...[...sourceIngredients].filter((k) => !data.ingredients[k]).map((k) => `ingredient "${k}"`),
+        ...[...sourceUnits].filter((k) => !data.units[k]).map((k) => `unit "${k}"`),
+        ...[...sourceNotes].filter((k) => !data.notes[k]).map((k) => `note "${k}"`),
+        ...[...sourceTags].filter((k) => !data.tags[k]).map((k) => `tag "${k}"`),
+        ...ALL_RECIPES.filter((r) => !data.recipes[r.id]).map((r) => `recipe ${r.id}`),
+      ]
+        .slice(0, 8)
+        .join(', ')
+    );
     info(
       `${locale}: ingredients ${pct(counts.ingredients, sourceIngredients.size)}% · ` +
         `units ${pct(counts.units, sourceUnits.size)}% · ` +

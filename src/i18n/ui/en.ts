@@ -58,6 +58,8 @@ export const en = {
   'week.averagePerDay': 'Average per day',
   'week.netCarbs': 'Net carbs',
   'week.kcal': '{count} kcal',
+  'week.netCarbsValue': '{count}g',
+  'week.netCarbsTarget': ' / {count}g',
   'week.shuffle': 'Shuffle this week',
   'week.shuffleAgain': 'Shuffle again ({count})',
   'week.previousWeek': 'Previous week',

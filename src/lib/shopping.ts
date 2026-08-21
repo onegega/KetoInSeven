@@ -159,3 +159,13 @@ export function formatAmount(
 
   return unit ? `${amount} ${unit}` : amount;
 }
+
+/**
+ * Uppercases only the first letter. The ingredient data is stored lowercase, and
+ * CSS `text-transform: capitalize` would uppercase every word — correct enough
+ * for English, wrong for "bulbe de fenouil" or "pipas de calabaza", where only
+ * the first word takes a capital. A no-op for Arabic, which has no letter case.
+ */
+export function capitaliseFirst(value: string): string {
+  return value.charAt(0).toLocaleUpperCase() + value.slice(1);
+}

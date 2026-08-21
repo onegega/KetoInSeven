@@ -3,7 +3,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -56,6 +56,15 @@ function RootStack() {
     if (!hydrated) return;
 
     const shouldBeRTL = LOCALE_META[preferences.locale].rtl;
+
+    // The browser needs telling separately: it drives bidirectional text runs —
+    // Arabic sentences carrying Latin numerals and units — and gives assistive
+    // technology the right language for the page.
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.dir = shouldBeRTL ? 'rtl' : 'ltr';
+      document.documentElement.lang = preferences.locale;
+    }
+
     if (I18nManager.isRTL === shouldBeRTL) return;
 
     I18nManager.allowRTL(shouldBeRTL);
