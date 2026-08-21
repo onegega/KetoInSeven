@@ -268,7 +268,8 @@ function run(api) {
   for (const recipe of ALL_RECIPES) {
     for (const ing of recipe.ingredients) {
       sourceIngredients.add(ing.name);
-      sourceUnits.add(ing.unit);
+      // The empty unit is countable items ("4 eggs") and has nothing to translate.
+      if (ing.unit) sourceUnits.add(ing.unit);
       if (ing.note) sourceNotes.add(ing.note);
     }
     for (const tag of recipe.tags) sourceTags.add(tag);
