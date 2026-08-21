@@ -1,3 +1,4 @@
+import { arProse } from './prose/ar';
 import type { RecipeLocaleData } from './types';
 
 /**
@@ -306,5 +307,5 @@ export const ar: RecipeLocaleData = {
     weeknight: 'ليوم عمل',
   },
 
-  recipes: {},
+  recipes: arProse,
 };

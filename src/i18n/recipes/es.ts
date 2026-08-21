@@ -1,3 +1,4 @@
+import { esProse } from './prose/es';
 import type { RecipeLocaleData } from './types';
 
 /** Recipe content in Spanish, keyed by the English source string. */
@@ -301,5 +302,5 @@ export const es: RecipeLocaleData = {
     weeknight: 'entre semana',
   },
 
-  recipes: {},
+  recipes: esProse,
 };

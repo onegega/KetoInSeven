@@ -1,3 +1,4 @@
+import { frProse } from './prose/fr';
 import type { RecipeLocaleData } from './types';
 
 /** Recipe content in French, keyed by the English source string. */
@@ -301,5 +302,5 @@ export const fr: RecipeLocaleData = {
     weeknight: 'en semaine',
   },
 
-  recipes: {},
+  recipes: frProse,
 };
