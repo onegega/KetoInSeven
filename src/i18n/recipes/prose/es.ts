@@ -2,6 +2,7 @@ import type { RecipeText } from '../types';
 
 import { esBreakfast } from './es-breakfast';
 import { esLunch } from './es-lunch';
+import { esDinner } from './es-dinner';
 
 /**
  * Per-recipe prose in es, keyed by recipe id, assembled from one file per meal
@@ -14,4 +15,5 @@ import { esLunch } from './es-lunch';
 export const esProse: Record<string, RecipeText> = {
   ...esBreakfast,
   ...esLunch,
+  ...esDinner,
 };
