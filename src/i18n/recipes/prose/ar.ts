@@ -1,6 +1,7 @@
 import type { RecipeText } from '../types';
 
 import { arBreakfast } from './ar-breakfast';
+import { arLunch } from './ar-lunch';
 
 /**
  * Per-recipe prose in ar, keyed by recipe id, assembled from one file per meal
@@ -12,4 +13,5 @@ import { arBreakfast } from './ar-breakfast';
  */
 export const arProse: Record<string, RecipeText> = {
   ...arBreakfast,
+  ...arLunch,
 };
