@@ -7,6 +7,40 @@ Everything ships inside the app. No account, no API key, no network calls: the
 recipe library is bundled, and the week is derived from the date rather than
 fetched, so the app works on a plane and costs nothing to run.
 
+## Screenshots
+
+<table>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/week.png" alt="The weekly plan: seven days of meals with net carbs per day"></td>
+    <td width="25%"><img src="docs/screenshots/recipe.png" alt="A recipe with macros, ingredients and method"></td>
+    <td width="25%"><img src="docs/screenshots/shopping.png" alt="The shopping list grouped by supermarket aisle"></td>
+    <td width="25%"><img src="docs/screenshots/settings.png" alt="Settings: language, dietary filters and carb target"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>This Week</b><br>Seven days, shuffled fresh</sub></td>
+    <td align="center"><sub><b>Recipe</b><br>Macros, ingredients, method</sub></td>
+    <td align="center"><sub><b>Shopping</b><br>Merged and grouped by aisle</sub></td>
+    <td align="center"><sub><b>Settings</b><br>Language and filters</sub></td>
+  </tr>
+  <tr>
+    <td width="25%"><img src="docs/screenshots/week-dark.png" alt="The weekly plan in dark mode"></td>
+    <td width="25%"><img src="docs/screenshots/arabic-week.png" alt="The weekly plan in Arabic, laid out right to left"></td>
+    <td width="25%"><img src="docs/screenshots/arabic-settings.png" alt="The language picker in Arabic"></td>
+    <td width="25%"><img src="docs/screenshots/french-shopping.png" alt="The shopping list in French"></td>
+  </tr>
+  <tr>
+    <td align="center"><sub><b>Dark mode</b><br>Follows the system</sub></td>
+    <td align="center"><sub><b>Arabic</b><br>Right-to-left layout</sub></td>
+    <td align="center"><sub><b>Language</b><br>Four languages</sub></td>
+    <td align="center"><sub><b>French</b><br>Sorted by translated name</sub></td>
+  </tr>
+</table>
+
+> Rendered from the web build at iPhone size, not from a simulator. The one
+> visible difference on iOS is the tab bar, which is a native `UITabBar` with SF
+> Symbol icons rather than the text-only bar the web renderer draws. Everything
+> else is the same code.
+
 ## What it does
 
 - **This Week** — seven days of breakfast, lunch and dinner, with net carbs per
