@@ -88,7 +88,7 @@ account, no Mac, no build step. This is the fastest way to actually hold it.
 
    ```bash
    git clone -b claude/keto-recipes-ios-app-25bxwz \
-     https://github.com/onegega/test.git ketoweek
+     https://github.com/onegega/KetoInSeven.git ketoweek
    cd ketoweek
    npm install
    npm start
