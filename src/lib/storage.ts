@@ -3,6 +3,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 /**
  * Bump this if a stored shape ever changes incompatibly — old keys are simply
  * left behind rather than migrated.
+ *
+ * Deliberately still says "ketoweek" after the app was renamed. A storage key is
+ * an identifier, not a label: renaming it to match would strand every saved
+ * recipe and shopping tick already on a device, in exchange for tidiness nobody
+ * can see.
  */
 const NAMESPACE = 'ketoweek/v1';
 

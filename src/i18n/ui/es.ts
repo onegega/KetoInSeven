@@ -134,10 +134,10 @@ export const es: UIDictionary = {
 
   'alert.notificationsOffTitle': 'Las notificaciones están desactivadas',
   'alert.notificationsOffBody':
-    'Activa las notificaciones de KetoWeek en la app Ajustes para recibir el recordatorio semanal.',
+    'Activa las notificaciones de KetoInSeven en la app Ajustes para recibir el recordatorio semanal.',
   'alert.restartTitle': 'Vuelve a abrir la app',
   'alert.restartBody':
-    'El árabe se lee de derecha a izquierda. Cierra KetoWeek del todo y ábrela otra vez para girar la interfaz.',
+    'El árabe se lee de derecha a izquierda. Cierra KetoInSeven del todo y ábrela otra vez para girar la interfaz.',
 
   'recipe.perServing': 'Por ración',
   'recipe.serves': 'Para {count}',

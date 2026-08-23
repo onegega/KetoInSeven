@@ -139,10 +139,10 @@ export const ar: UIDictionary = {
 
   'alert.notificationsOffTitle': 'الإشعارات معطّلة',
   'alert.notificationsOffBody':
-    'فعّل الإشعارات لتطبيق KetoWeek من إعدادات النظام لتصلك التذكيرات الأسبوعية.',
+    'فعّل الإشعارات لتطبيق KetoInSeven من إعدادات النظام لتصلك التذكيرات الأسبوعية.',
   'alert.restartTitle': 'أعد فتح التطبيق',
   'alert.restartBody':
-    'العربية تُقرأ من اليمين إلى اليسار. أغلق KetoWeek تمامًا ثم افتحه من جديد ليتغيّر اتجاه الواجهة.',
+    'العربية تُقرأ من اليمين إلى اليسار. أغلق KetoInSeven تمامًا ثم افتحه من جديد ليتغيّر اتجاه الواجهة.',
 
   'recipe.perServing': 'لكل حصة',
   'recipe.serves': 'يكفي {count}',

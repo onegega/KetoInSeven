@@ -1,22 +1,22 @@
 {
   "expo": {
-    "name": "KetoWeek",
-    "slug": "ketoweek",
+    "name": "KetoInSeven",
+    "slug": "ketoinseven",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "ketoweek",
+    "scheme": "ketoinseven",
     "userInterfaceStyle": "automatic",
     "primaryColor": "#3F8F5B",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ketoweek.app",
+      "bundleIdentifier": "com.ketoinseven.app",
       "config": {
         "usesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.ketoweek.app",
+      "package": "com.ketoinseven.app",
       "adaptiveIcon": {
         "backgroundColor": "#2F6B45",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

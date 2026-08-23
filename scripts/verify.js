@@ -15,7 +15,7 @@ const os = require('node:os');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'ketoweek-verify-'));
+const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'ketoinseven-verify-'));
 
 function compile() {
   const config = path.join(OUT, 'tsconfig.json');
