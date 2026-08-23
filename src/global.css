@@ -1,0 +1,25 @@
+:root {
+  --font-display:
+    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
+    Segoe UI Symbol, Noto Color Emoji;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+}
+
+/*
+ * Web only — native is unaffected, since React Native ignores this file.
+ *
+ * expo-router renders the tab bar on web as a bar fixed 24px from the *top* of
+ * the viewport. iOS puts its tab bar along the bottom, so the web build is
+ * moved to match rather than having navigation live somewhere different
+ * depending on where you opened the app.
+ *
+ * The selector matches on a substring because the class is a CSS module and
+ * carries a build-specific hash prefix; only the readable half is stable.
+ */
+[class*='navigationMenuRoot'] {
+  top: auto !important;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
+}
