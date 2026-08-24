@@ -131,6 +131,7 @@ export const en = {
   'settings.addSnack': 'Add a snack of the week',
   'settings.weekStartsOn': 'WEEK STARTS ON',
   'settings.monday': 'Monday',
+  'settings.saturday': 'Saturday',
   'settings.sunday': 'Sunday',
   'settings.weeklyReminder': 'WEEKLY REMINDER',
   'settings.reminderToggle': 'Remind me when the new week lands',

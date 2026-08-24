@@ -9,7 +9,14 @@
 import { DAY_KEY, MONTH_KEY } from '@/i18n/keys';
 import type { Translator } from '@/i18n/translate';
 
-export type WeekStartDay = 0 | 1; // Sunday | Monday
+/**
+ * The day a week begins, using JavaScript's day numbering.
+ *
+ * Saturday is included because much of the Arabic-speaking world starts the
+ * week there — an app offering Arabic that only offers Monday and Sunday is
+ * offering the wrong two.
+ */
+export type WeekStartDay = 0 | 1 | 6; // Sunday | Monday | Saturday
 
 const MS_PER_DAY = 86_400_000;
 

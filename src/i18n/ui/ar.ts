@@ -121,6 +121,7 @@ export const ar: UIDictionary = {
   'settings.addSnack': 'أضف وجبة خفيفة للأسبوع',
   'settings.weekStartsOn': 'يبدأ الأسبوع يوم',
   'settings.monday': 'الاثنين',
+  'settings.saturday': 'السبت',
   'settings.sunday': 'الأحد',
   'settings.weeklyReminder': 'التذكير الأسبوعي',
   'settings.reminderToggle': 'ذكّرني عند بدء أسبوع جديد',

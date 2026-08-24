@@ -117,6 +117,7 @@ export const fr: UIDictionary = {
   'settings.addSnack': 'Ajouter un en-cas de la semaine',
   'settings.weekStartsOn': 'LA SEMAINE COMMENCE LE',
   'settings.monday': 'Lundi',
+  'settings.saturday': 'Samedi',
   'settings.sunday': 'Dimanche',
   'settings.weeklyReminder': 'RAPPEL HEBDOMADAIRE',
   'settings.reminderToggle': 'Me prévenir quand la nouvelle semaine arrive',

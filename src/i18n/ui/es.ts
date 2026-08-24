@@ -116,6 +116,7 @@ export const es: UIDictionary = {
   'settings.addSnack': 'Añadir un tentempié de la semana',
   'settings.weekStartsOn': 'LA SEMANA EMPIEZA EN',
   'settings.monday': 'Lunes',
+  'settings.saturday': 'Sábado',
   'settings.sunday': 'Domingo',
   'settings.weeklyReminder': 'RECORDATORIO SEMANAL',
   'settings.reminderToggle': 'Avisarme cuando llegue la semana nueva',
