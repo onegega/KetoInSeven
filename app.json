@@ -42,6 +42,7 @@
           "imageWidth": 140
         }
       ],
+      "./plugins/with-local-notifications-only",
       [
         "expo-notifications",
         {
