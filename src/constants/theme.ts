@@ -1,5 +1,5 @@
 /**
- * Design tokens for KetoWeek.
+ * Design tokens for KetoInSeven.
  *
  * The palette is built around avocado green on warm paper in light mode, and
  * the same green lifted for contrast on near-black in dark mode. Macro colors

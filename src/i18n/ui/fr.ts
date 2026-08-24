@@ -117,6 +117,7 @@ export const fr: UIDictionary = {
   'settings.addSnack': 'Ajouter un en-cas de la semaine',
   'settings.weekStartsOn': 'LA SEMAINE COMMENCE LE',
   'settings.monday': 'Lundi',
+  'settings.saturday': 'Samedi',
   'settings.sunday': 'Dimanche',
   'settings.weeklyReminder': 'RAPPEL HEBDOMADAIRE',
   'settings.reminderToggle': 'Me prévenir quand la nouvelle semaine arrive',
@@ -135,10 +136,10 @@ export const fr: UIDictionary = {
 
   'alert.notificationsOffTitle': 'Les notifications sont désactivées',
   'alert.notificationsOffBody':
-    'Activez les notifications de KetoWeek dans l’app Réglages pour recevoir le rappel hebdomadaire.',
+    'Activez les notifications de KetoInSeven dans l’app Réglages pour recevoir le rappel hebdomadaire.',
   'alert.restartTitle': 'Rouvrez l’app',
   'alert.restartBody':
-    'L’arabe se lit de droite à gauche. Fermez complètement KetoWeek puis rouvrez-la pour inverser la mise en page.',
+    'L’arabe se lit de droite à gauche. Fermez complètement KetoInSeven puis rouvrez-la pour inverser la mise en page.',
 
   'recipe.perServing': 'Par portion',
   'recipe.serves': 'Pour {count}',

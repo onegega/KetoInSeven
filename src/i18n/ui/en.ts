@@ -131,6 +131,7 @@ export const en = {
   'settings.addSnack': 'Add a snack of the week',
   'settings.weekStartsOn': 'WEEK STARTS ON',
   'settings.monday': 'Monday',
+  'settings.saturday': 'Saturday',
   'settings.sunday': 'Sunday',
   'settings.weeklyReminder': 'WEEKLY REMINDER',
   'settings.reminderToggle': 'Remind me when the new week lands',
@@ -151,10 +152,10 @@ export const en = {
   // Alerts
   'alert.notificationsOffTitle': 'Notifications are off',
   'alert.notificationsOffBody':
-    'Turn on notifications for KetoWeek in the Settings app to get the weekly reminder.',
+    'Turn on notifications for KetoInSeven in the Settings app to get the weekly reminder.',
   'alert.restartTitle': 'Reopen the app',
   'alert.restartBody':
-    'Arabic reads right to left. Close KetoWeek completely and open it again to flip the layout.',
+    'Arabic reads right to left. Close KetoInSeven completely and open it again to flip the layout.',
 
   // Recipe detail
   'recipe.perServing': 'Per serving',

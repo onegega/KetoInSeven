@@ -1,4 +1,4 @@
-# KetoWeek
+# KetoInSeven
 
 An iOS app, built with React Native and Expo, that hands you a fresh seven-day
 keto meal plan every week — with the shopping list already written.
@@ -88,8 +88,8 @@ account, no Mac, no build step. This is the fastest way to actually hold it.
 
    ```bash
    git clone -b claude/keto-recipes-ios-app-25bxwz \
-     https://github.com/onegega/test.git ketoweek
-   cd ketoweek
+     https://github.com/onegega/KetoInSeven.git ketoinseven
+   cd ketoinseven
    npm install
    npm start
    ```
@@ -215,12 +215,12 @@ quarterly.
 #### Two names Apple requires to be unique
 
 - **Bundle identifier** — `app.json` sets `ios.bundleIdentifier` to
-  `com.ketoweek.app`. It has to be unique across every app Apple knows about. If
+  `com.ketoinseven.app`. It has to be unique across every app Apple knows about. If
   registration fails because someone already holds it, change it to
-  `com.yourname.ketoweek` and rebuild.
-- **App Store Connect name** — must also be unique store-wide, so "KetoWeek" may
+  `com.yourname.ketoinseven` and rebuild.
+- **App Store Connect name** — must also be unique store-wide, so "KetoInSeven" may
   be taken. That name is only the App Store listing; the name under the icon on
-  your home screen comes from `expo.name` in `app.json` and can stay "KetoWeek"
+  your home screen comes from `expo.name` in `app.json` and can stay "KetoInSeven"
   regardless.
 
 Change the bundle identifier *before* you first install, not after. Apple treats

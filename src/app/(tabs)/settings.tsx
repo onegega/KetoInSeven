@@ -125,6 +125,11 @@ export default function SettingsScreen() {
               active={preferences.weekStartsOn === 0}
               onPress={() => updatePreferences({ weekStartsOn: 0 })}
             />
+            <OptionPill
+              label={t('settings.saturday')}
+              active={preferences.weekStartsOn === 6}
+              onPress={() => updatePreferences({ weekStartsOn: 6 })}
+            />
           </View>
         </Section>
 
