@@ -66,6 +66,8 @@ export const en = {
   'week.nextWeekLabel': 'Next week',
   'week.snackOfTheWeek': 'SNACK OF THE WEEK',
   'week.netCarbsChip': '{count}g net carbs',
+  'week.bubbleUnder': "Nice — you're averaging {count}g net carbs a day, under your {limit}g target.",
+  'week.bubbleOver': 'This week averages {count}g a day, over your {limit}g target. Try a shuffle.',
   'week.noticeDietIgnored':
     'No {slots} recipes match every filter you have on, so this week’s {slots} ignore them. Turning one filter off will fix it.',
   'week.noticeOverTargetOne':
@@ -82,6 +84,9 @@ export const en = {
   'card.minutes': '{count} min',
   'card.kcal': '{count} kcal',
   'card.netCarbs': '{count}g net',
+  'card.netCarbsValue': '{count}g',
+  'card.netCarbsCaption': 'net carbs',
+  'card.done': 'Done',
   'card.a11yRecipe': '{title}, {count} grams net carbs',
   'card.save': 'Save recipe',
   'card.unsave': 'Remove from saved recipes',

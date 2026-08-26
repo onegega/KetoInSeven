@@ -279,6 +279,37 @@ the carb budget is dropped before the diet flags are — running a few grams ove
 is a smaller betrayal than serving someone the food they excluded — and the app
 says on the plan screen when either has happened.
 
+## The look
+
+Cream paper, ink, one green, and a colour per meal.
+
+Two rules do most of the work, and both live in `src/constants/theme.ts`:
+
+**Separation comes from fill, not from outlines.** Cards are a shade *darker*
+than the page rather than being fenced off with hairlines. Borders survive only
+as dividers inside a grouped list. This is why the page is warm cream and never
+white — against white, a filled card reads as a hole.
+
+**Every relationship inverts.** In light mode `surface` is darker than
+`background`; in dark mode it is lighter. `inverseSurface` is near-black on
+light and near-white on dark. Anything written against "the card stands out
+from the page" stays true in both schemes without a second code path. The one
+deliberate exception is the tab bar, which stays dark in both — the inversion
+that looks confident at the size of a day chip is a glare at the size of a bar.
+
+Meal slots carry fixed colours (breakfast amber, lunch blue, dinner magenta,
+snack teal) and so do macros (fat, protein, carbs), so a colour always names the
+same thing wherever it appears.
+
+Every foreground/background pairing the UI actually draws is checked against
+WCAG contrast by `scripts/check-contrast.js`, which runs inside `npm run
+verify`. Retuning a token that would make a label unreadable fails the build
+rather than shipping. Run it alone with:
+
+```bash
+node scripts/check-contrast.js
+```
+
 ## Project layout
 
 ```
@@ -294,6 +325,7 @@ src/
   lib/                 pure logic: plan, shopping, week maths, rng, storage
   store/               app state + AsyncStorage persistence
 scripts/
+  check-contrast.js    holds the palette to WCAG contrast ratios
   generate-icons.js    regenerates the app icons as flat PNGs
   verify.js            checks the recipe data and planning logic
 ```

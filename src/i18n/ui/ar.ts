@@ -63,6 +63,8 @@ export const ar: UIDictionary = {
   'week.nextWeekLabel': 'الأسبوع القادم',
   'week.snackOfTheWeek': 'وجبة الأسبوع الخفيفة',
   'week.netCarbsChip': '{count} غ كربوهيدرات صافية',
+  'week.bubbleUnder': 'أحسنت — متوسطك {count} غ كربوهيدرات صافية يوميًا، دون هدفك البالغ {limit} غ.',
+  'week.bubbleOver': 'متوسط هذا الأسبوع {count} غ يوميًا، فوق هدفك البالغ {limit} غ. جرّب الخلط.',
   'week.noticeDietIgnored':
     'لا توجد وصفات {slots} تطابق كل القيود المفعّلة، لذلك تتجاهلها {slots} هذا الأسبوع. إيقاف أحد القيود يحل المشكلة.',
   'week.noticeOverTargetOne':
@@ -77,6 +79,9 @@ export const ar: UIDictionary = {
   'card.minutes': '{count} دقيقة',
   'card.kcal': '{count} سعرة',
   'card.netCarbs': '{count} غ صافي',
+  'card.netCarbsValue': '{count} غ',
+  'card.netCarbsCaption': 'كربوهيدرات صافية',
+  'card.done': 'تم',
   'card.a11yRecipe': '{title}، {count} غرام كربوهيدرات صافية',
   'card.save': 'احفظ الوصفة',
   'card.unsave': 'أزل من المحفوظات',

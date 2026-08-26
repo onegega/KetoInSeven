@@ -23,3 +23,34 @@
   top: auto !important;
   bottom: calc(20px + env(safe-area-inset-bottom, 0px)) !important;
 }
+
+/*
+ * The web tab bar again — this time its shape.
+ *
+ * expo-router renders it as a full-width flex row, which at phone widths lets
+ * four labels run past the right edge and clip the last one. Native tabs shrink
+ * their labels to fit; the web bar does not, so it is given content width,
+ * centred, and capped so it can never exceed the viewport.
+ *
+ * Colours are deliberately absent here. They come from the NativeTabs props in
+ * app/(tabs)/_layout.tsx so the palette has exactly one home.
+ */
+[class*='navigationMenuRoot'] {
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  width: max-content !important;
+  max-width: calc(100vw - 32px) !important;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 18%) !important;
+}
+
+[class*='navigationMenuTrigger'] {
+  padding-left: 14px !important;
+  padding-right: 14px !important;
+}
+
+[class*='tabText'] {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+}

@@ -57,6 +57,8 @@ export const fr: UIDictionary = {
   'week.nextWeekLabel': 'Semaine suivante',
   'week.snackOfTheWeek': 'EN-CAS DE LA SEMAINE',
   'week.netCarbsChip': '{count} g de glucides nets',
+  'week.bubbleUnder': 'Bravo — vous êtes à {count} g de glucides nets par jour, sous votre objectif de {limit} g.',
+  'week.bubbleOver': 'Cette semaine est à {count} g par jour, au-dessus de votre objectif de {limit} g. Essayez de mélanger.',
   'week.noticeDietIgnored':
     'Aucune recette de {slots} ne respecte tous vos filtres, donc les {slots} de cette semaine les ignorent. Désactiver un filtre suffit à corriger cela.',
   'week.noticeOverTargetOne':
@@ -71,6 +73,9 @@ export const fr: UIDictionary = {
   'card.minutes': '{count} min',
   'card.kcal': '{count} kcal',
   'card.netCarbs': '{count} g nets',
+  'card.netCarbsValue': '{count} g',
+  'card.netCarbsCaption': 'glucides nets',
+  'card.done': 'Faite',
   'card.a11yRecipe': '{title}, {count} grammes de glucides nets',
   'card.save': 'Enregistrer la recette',
   'card.unsave': 'Retirer des enregistrées',

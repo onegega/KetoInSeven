@@ -19,10 +19,7 @@ export function Chip({ label, tone = 'neutral' }: ChipProps) {
     <View
       style={[
         styles.chip,
-        {
-          backgroundColor: accent ? theme.accentSoft : theme.surfaceAlt,
-          borderColor: accent ? theme.accent : theme.border,
-        },
+        { backgroundColor: accent ? theme.accentSoft : theme.surfaceAlt },
       ]}>
       <ThemedText type="small" style={styles.label} themeColor={accent ? 'accent' : 'textSecondary'}>
         {label}
@@ -33,10 +30,9 @@ export function Chip({ label, tone = 'neutral' }: ChipProps) {
 
 const styles = StyleSheet.create({
   chip: {
-    paddingHorizontal: Spacing.two + 2,
-    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two + 4,
+    paddingVertical: Spacing.one + 2,
     borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
   },
-  label: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  label: { fontSize: 12, lineHeight: 16, fontWeight: '700' },
 });

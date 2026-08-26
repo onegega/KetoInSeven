@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const os = require('node:os');
 const path = require('node:path');
+const { evaluate: evaluateContrast } = require('./check-contrast');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'ketoinseven-verify-'));
@@ -323,6 +324,16 @@ function run(api) {
       .filter(([, v]) => !v.title.trim() || !v.blurb.trim() || v.steps.some((s) => !s.trim()))
       .map(([k]) => k);
     check(`${locale}: no blank recipe text`, emptyStrings.length === 0, emptyStrings.join(', '));
+  }
+
+  heading('Colour contrast');
+  for (const { scheme, results } of evaluateContrast()) {
+    const bad = results.filter((r) => r.ratio < r.min);
+    check(
+      `${scheme}: all ${results.length} colour pairings meet contrast`,
+      bad.length === 0,
+      bad.map((r) => `${r.fg} on ${r.bg} ${r.ratio.toFixed(2)}:1 < ${r.min}:1`).join('; ')
+    );
   }
 
   heading('Week maths');

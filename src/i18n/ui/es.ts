@@ -57,6 +57,8 @@ export const es: UIDictionary = {
   'week.nextWeekLabel': 'Semana siguiente',
   'week.snackOfTheWeek': 'TENTEMPIÉ DE LA SEMANA',
   'week.netCarbsChip': '{count} g de carbos netos',
+  'week.bubbleUnder': 'Bien — promedias {count} g de carbos netos al día, por debajo de tu objetivo de {limit} g.',
+  'week.bubbleOver': 'Esta semana promedia {count} g al día, por encima de tu objetivo de {limit} g. Prueba a barajar.',
   'week.noticeDietIgnored':
     'Ninguna receta de {slots} cumple todos los filtros activos, así que las de {slots} de esta semana los ignoran. Desactiva un filtro y se arregla.',
   'week.noticeOverTargetOne':
@@ -71,6 +73,9 @@ export const es: UIDictionary = {
   'card.minutes': '{count} min',
   'card.kcal': '{count} kcal',
   'card.netCarbs': '{count} g netos',
+  'card.netCarbsValue': '{count} g',
+  'card.netCarbsCaption': 'carbos netos',
+  'card.done': 'Hecha',
   'card.a11yRecipe': '{title}, {count} gramos de carbos netos',
   'card.save': 'Guardar receta',
   'card.unsave': 'Quitar de guardadas',

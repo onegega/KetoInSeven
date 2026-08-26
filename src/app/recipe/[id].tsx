@@ -8,7 +8,7 @@ import { MacroBar } from '@/components/macro-bar';
 import { SaveButton } from '@/components/save-button';
 import { Screen } from '@/components/screen';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { Radius, SLOT_COLOR, Spacing } from '@/constants/theme';
 import { getRecipe } from '@/data/recipes';
 import { totalMinutes, type Ingredient, type Recipe } from '@/data/types';
 import { useTheme } from '@/hooks/use-theme';
@@ -69,7 +69,7 @@ function Hero({
         <ThemedText style={styles.emoji}>{recipe.emoji}</ThemedText>
       </View>
 
-      <ThemedText type="small" themeColor="accent" style={styles.slot}>
+      <ThemedText type="small" themeColor={SLOT_COLOR[recipe.slot]} style={styles.slot}>
         {t(SLOT_KEY[recipe.slot]).toUpperCase()}
       </ThemedText>
 
@@ -104,7 +104,7 @@ function MacroCard({ recipe, t }: { recipe: Recipe; t: Translator }) {
   const theme = useTheme();
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+    <View style={[styles.card, { backgroundColor: theme.surface }]}>
       <View style={styles.macroHeader}>
         <ThemedText type="smallBold">{t('recipe.perServing')}</ThemedText>
         <ThemedText type="smallBold" themeColor="accent">
@@ -142,7 +142,7 @@ function Ingredients({
         {t('recipe.ingredients')}
       </ThemedText>
 
-      <View style={[styles.listCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.listCard, { backgroundColor: theme.surface }]}>
         {recipe.ingredients.map((ingredient, index) => (
           <IngredientRow
             key={`${ingredient.name}-${ingredient.unit}`}
@@ -264,15 +264,13 @@ const styles = StyleSheet.create({
   metaLabel: { fontSize: 12, lineHeight: 16 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: Spacing.one + 2, marginTop: Spacing.one },
   card: {
-    borderRadius: Radius.large,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.xlarge,
     padding: Spacing.three,
     gap: Spacing.two + 4,
   },
   // Rows carry their own dividers, so this variant has no gap of its own.
   listCard: {
-    borderRadius: Radius.large,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.xlarge,
     paddingHorizontal: Spacing.three,
   },
   macroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

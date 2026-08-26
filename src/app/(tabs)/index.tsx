@@ -1,12 +1,14 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { Chip } from '@/components/chip';
+import { DayStrip } from '@/components/day-strip';
 import { MacroBar } from '@/components/macro-bar';
 import { RecipeCard } from '@/components/recipe-card';
 import { Screen } from '@/components/screen';
+import { SpeechBubble } from '@/components/speech-bubble';
+import { Tag } from '@/components/tag';
 import { ThemedText } from '@/components/themed-text';
 import { BottomTabInset, Radius, Spacing } from '@/constants/theme';
 import { getRecipe } from '@/data/recipes';
@@ -20,8 +22,10 @@ import {
   addDays,
   formatDayAndMonth,
   formatWeekRange,
+  isSameDay,
   relativeDayLabel,
   startOfWeek,
+  toDateId,
 } from '@/lib/week';
 
 export default function ThisWeekScreen() {
@@ -49,6 +53,20 @@ export default function ThisWeekScreen() {
   ).length;
   const notice = weekNotice(plan, daysOverLimit, preferences.netCarbLimit, t);
 
+  // The strip jumps the list rather than filtering it, so it needs each day's
+  // offset within the scroll view. Sections report their own y as they lay out.
+  const scrollRef = useRef<ScrollView>(null);
+  const offsets = useRef<Record<string, number>>({});
+  const today = plan.days.find((day) => isSameDay(day.date, new Date()));
+  const [selectedId, setSelectedId] = useState(() => toDateId(today?.date ?? plan.days[0].date));
+
+  const jumpTo = useCallback((date: Date) => {
+    const id = toDateId(date);
+    setSelectedId(id);
+    const y = offsets.current[id];
+    if (y !== undefined) scrollRef.current?.scrollTo({ y: Math.max(y - Spacing.three, 0), animated: true });
+  }, []);
+
   const onShuffle = () => {
     if (Platform.OS !== 'web') void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     shuffleWeek(plan.weekId);
@@ -56,10 +74,13 @@ export default function ThisWeekScreen() {
 
   return (
     <Screen>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <View style={styles.headerText}>
-            <ThemedText type="small" themeColor="accent" style={styles.eyebrow}>
+            <ThemedText themeColor="textMuted" style={styles.eyebrow}>
               {t(weekOffset === 0 ? 'week.thisWeek' : weekOffset === 1 ? 'week.nextWeek' : 'week.weekOf')}
             </ThemedText>
             <ThemedText style={styles.headerTitle}>{formatWeekRange(weekStart, t)}</ThemedText>
@@ -79,10 +100,27 @@ export default function ThisWeekScreen() {
           </View>
         </View>
 
-        <View style={[styles.summary, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* Full-bleed: the strip should run off both edges as it scrolls, which
+            means cancelling the content column's own horizontal padding. */}
+        <View style={styles.bleed}>
+          <DayStrip
+            dates={plan.days.map((day) => day.date)}
+            selectedId={selectedId}
+            onSelect={jumpTo}
+          />
+        </View>
+
+        <SpeechBubble>
+          {t(overBudget ? 'week.bubbleOver' : 'week.bubbleUnder', {
+            count: averageNetCarbs,
+            limit: preferences.netCarbLimit,
+          })}
+        </SpeechBubble>
+
+        <View style={[styles.summary, { backgroundColor: theme.surface }]}>
           <View style={styles.summaryTop}>
             <View>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText themeColor="textSecondary" style={styles.summaryLabel}>
                 {t('week.averagePerDay')}
               </ThemedText>
               <ThemedText style={styles.summaryValue}>
@@ -91,13 +129,13 @@ export default function ThisWeekScreen() {
             </View>
 
             <View style={styles.carbBadgeWrap}>
-              <ThemedText type="small" themeColor="textSecondary">
+              <ThemedText themeColor="textSecondary" style={styles.summaryLabel}>
                 {t('week.netCarbs')}
               </ThemedText>
               <ThemedText
                 style={[styles.summaryValue, { color: overBudget ? theme.danger : theme.accent }]}>
                 {t('week.netCarbsValue', { count: averageNetCarbs })}
-                <ThemedText type="small" themeColor="textMuted">
+                <ThemedText themeColor="textMuted" style={styles.summaryTarget}>
                   {t('week.netCarbsTarget', { count: preferences.netCarbLimit })}
                 </ThemedText>
               </ThemedText>
@@ -115,25 +153,27 @@ export default function ThisWeekScreen() {
               { backgroundColor: theme.accent },
               pressed && styles.pressed,
             ]}>
-            <Ionicons name="shuffle" size={17} color={theme.accentText} />
-            <ThemedText type="smallBold" style={{ color: theme.accentText }}>
+            <Ionicons name="shuffle" size={18} color={theme.accentText} />
+            <ThemedText style={[styles.shuffleLabel, { color: theme.accentText }]}>
               {shuffles === 0 ? t('week.shuffle') : t('week.shuffleAgain', { count: shuffles })}
             </ThemedText>
           </Pressable>
         </View>
 
         {notice && (
-          <View
-            style={[
-              styles.notice,
-              { backgroundColor: theme.surfaceAlt, borderColor: notice.serious ? theme.danger : theme.border },
-            ]}>
+          <View style={[styles.notice, { backgroundColor: theme.surface }]}>
+            <View
+              style={[
+                styles.noticeStripe,
+                { backgroundColor: notice.serious ? theme.danger : theme.textMuted },
+              ]}
+            />
             <Ionicons
-              name={notice.serious ? 'alert-circle-outline' : 'information-circle-outline'}
+              name={notice.serious ? 'alert-circle' : 'information-circle'}
               size={18}
               color={notice.serious ? theme.danger : theme.textSecondary}
             />
-            <ThemedText type="small" themeColor="textSecondary" style={styles.noticeText}>
+            <ThemedText themeColor="textSecondary" style={styles.noticeText}>
               {notice.message}
             </ThemedText>
           </View>
@@ -147,12 +187,15 @@ export default function ThisWeekScreen() {
             netCarbLimit={preferences.netCarbLimit}
             isCooked={isCooked}
             onToggleCooked={toggleCooked}
+            onLayoutY={(y) => {
+              offsets.current[day.dateId] = y;
+            }}
           />
         ))}
 
         {snack && (
           <View style={styles.section}>
-            <ThemedText type="smallBold" themeColor="textSecondary" style={styles.sectionTitle}>
+            <ThemedText themeColor="textMuted" style={styles.sectionTitle}>
               {t('week.snackOfTheWeek')}
             </ThemedText>
             <RecipeCard recipe={snack} />
@@ -198,33 +241,31 @@ type DaySectionProps = {
   netCarbLimit: number;
   isCooked: (dateId: string, slot: Recipe['slot']) => boolean;
   onToggleCooked: (dateId: string, slot: Recipe['slot']) => void;
+  onLayoutY: (y: number) => void;
 };
 
-function DaySection({ day, t, netCarbLimit, isCooked, onToggleCooked }: DaySectionProps) {
-  const theme = useTheme();
+function DaySection({ day, t, netCarbLimit, isCooked, onToggleCooked, onLayoutY }: DaySectionProps) {
   const macros = dayMacros(day);
   const over = macros.netCarbs > netCarbLimit;
   const label = relativeDayLabel(day.date, t);
 
   return (
-    <View style={styles.section}>
+    <View style={styles.section} onLayout={(event) => onLayoutY(event.nativeEvent.layout.y)}>
       <View style={styles.dayHeader}>
         <View style={styles.dayHeading}>
-          <ThemedText type="smallBold" style={styles.dayLabel}>
-            {label.toUpperCase()}
-          </ThemedText>
-          <ThemedText type="small" themeColor="textMuted">
+          <ThemedText style={styles.dayLabel}>{label}</ThemedText>
+          <ThemedText themeColor="textMuted" style={styles.dayDate}>
             {formatDayAndMonth(day.date, t)}
           </ThemedText>
         </View>
 
-        <Chip
+        <Tag
           label={t('week.netCarbsChip', { count: Math.round(macros.netCarbs) })}
-          tone={over ? 'neutral' : 'accent'}
+          color={over ? 'danger' : 'accent'}
+          icon={over ? 'alert-circle' : 'leaf'}
+          filled
         />
       </View>
-
-      <View style={[styles.dayRule, { backgroundColor: theme.border }]} />
 
       <View style={styles.cards}>
         {day.meals.map((meal) => {
@@ -264,7 +305,7 @@ function NavButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.navButton,
-        { backgroundColor: theme.surfaceAlt, borderColor: theme.border },
+        { backgroundColor: theme.surface },
         pressed && styles.pressed,
       ]}>
       <Ionicons name={icon} size={18} color={theme.text} />
@@ -279,50 +320,65 @@ const styles = StyleSheet.create({
     paddingBottom: BottomTabInset + Spacing.five,
     gap: Spacing.four,
   },
-  header: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: Spacing.three },
+  bleed: { marginHorizontal: -Spacing.three },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: Spacing.three,
+  },
   headerText: { flex: 1, gap: 2 },
-  eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.8 },
-  headerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700' },
+  eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '800', letterSpacing: 1 },
+  headerTitle: { fontSize: 27, lineHeight: 33, fontWeight: '800', letterSpacing: -0.4 },
   weekNav: { flexDirection: 'row', gap: Spacing.two },
   navButton: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',
   },
   summary: {
-    borderRadius: Radius.large,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: Spacing.three,
+    borderRadius: Radius.xlarge,
+    padding: Spacing.three + 2,
     gap: Spacing.three,
   },
   summaryTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  summaryValue: { fontSize: 22, lineHeight: 28, fontWeight: '700' },
+  summaryLabel: { fontSize: 11, lineHeight: 15, fontWeight: '800', letterSpacing: 0.7, textTransform: 'uppercase' },
+  summaryValue: { fontSize: 26, lineHeight: 32, fontWeight: '800', letterSpacing: -0.5 },
+  summaryTarget: { fontSize: 13, lineHeight: 18, fontWeight: '700' },
   carbBadgeWrap: { alignItems: 'flex-end' },
   shuffleButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.two,
-    paddingVertical: Spacing.two + 4,
+    paddingVertical: Spacing.three - 2,
     borderRadius: Radius.medium,
   },
+  shuffleLabel: { fontSize: 15, lineHeight: 20, fontWeight: '800' },
   pressed: { opacity: 0.7 },
   notice: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: Spacing.two,
     padding: Spacing.three,
-    borderRadius: Radius.medium,
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingLeft: Spacing.three + 4,
+    borderRadius: Radius.large,
+    overflow: 'hidden',
   },
-  noticeText: { flex: 1 },
+  noticeStripe: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
+  noticeText: { flex: 1, fontSize: 13, lineHeight: 19, fontWeight: '600' },
   section: { gap: Spacing.two },
-  sectionTitle: { letterSpacing: 0.8, fontSize: 11, lineHeight: 14 },
-  dayHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitle: { fontSize: 11, lineHeight: 14, fontWeight: '800', letterSpacing: 1 },
+  dayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.half,
+  },
   dayHeading: { flexDirection: 'row', alignItems: 'baseline', gap: Spacing.two },
-  dayLabel: { letterSpacing: 0.8, fontSize: 13 },
-  dayRule: { height: StyleSheet.hairlineWidth, marginBottom: Spacing.one },
+  dayLabel: { fontSize: 18, lineHeight: 23, fontWeight: '800', letterSpacing: -0.2 },
+  dayDate: { fontSize: 13, lineHeight: 18, fontWeight: '600' },
   cards: { gap: Spacing.two },
 });
