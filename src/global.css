@@ -42,15 +42,26 @@
   width: max-content !important;
   max-width: calc(100vw - 32px) !important;
   box-shadow: 0 10px 30px rgb(0 0 0 / 18%) !important;
+  /*
+   * Five tabs in a long-worded language can still outgrow a narrow phone even
+   * at this size. Scrolling degrades better than clipping, which silently hides
+   * whichever tab happens to be last.
+   */
+  overflow-x: auto !important;
+  scrollbar-width: none !important;
+}
+
+[class*='navigationMenuRoot']::-webkit-scrollbar {
+  display: none;
 }
 
 [class*='navigationMenuTrigger'] {
-  padding-left: 14px !important;
-  padding-right: 14px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
 }
 
 [class*='tabText'] {
-  font-size: 13px !important;
+  font-size: 12px !important;
   font-weight: 700 !important;
   white-space: nowrap !important;
 }

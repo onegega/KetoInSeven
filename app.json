@@ -42,6 +42,13 @@
           "imageWidth": 140
         }
       ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "KetoInSeven uses the camera to read barcodes on food packaging. Images are never recorded, saved or uploaded.",
+          "recordAudioAndroid": false
+        }
+      ],
       "./plugins/with-local-notifications-only",
       [
         "expo-notifications",

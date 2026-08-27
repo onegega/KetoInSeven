@@ -3,9 +3,13 @@
 An iOS app, built with React Native and Expo, that hands you a fresh seven-day
 keto meal plan every week — with the shopping list already written.
 
-Everything ships inside the app. No account, no API key, no network calls: the
-recipe library is bundled, and the week is derived from the date rather than
-fetched, so the app works on a plane and costs nothing to run.
+Everything ships inside the app. No account and no API key: the recipe library
+is bundled and the week is derived from the date rather than fetched, so the
+planner works on a plane and costs nothing to run.
+
+The one exception is the barcode scanner, which asks Open Food Facts what is in
+a packaged food. That is the only feature that needs a network, and the only
+one that stops working without one.
 
 ## Screenshots
 
@@ -23,15 +27,15 @@ fetched, so the app works on a plane and costs nothing to run.
     <td align="center"><sub><b>Settings</b><br>Language and filters</sub></td>
   </tr>
   <tr>
+    <td width="25%"><img src="docs/screenshots/scan.png" alt="A scanned peanut butter judged borderline, with the reasons listed"></td>
     <td width="25%"><img src="docs/screenshots/week-dark.png" alt="The weekly plan in dark mode"></td>
     <td width="25%"><img src="docs/screenshots/arabic-week.png" alt="The weekly plan in Arabic, laid out right to left"></td>
-    <td width="25%"><img src="docs/screenshots/arabic-settings.png" alt="The language picker in Arabic"></td>
     <td width="25%"><img src="docs/screenshots/french-shopping.png" alt="The shopping list in French"></td>
   </tr>
   <tr>
+    <td align="center"><sub><b>Scan</b><br>Barcode to keto verdict</sub></td>
     <td align="center"><sub><b>Dark mode</b><br>Follows the system</sub></td>
     <td align="center"><sub><b>Arabic</b><br>Right-to-left layout</sub></td>
-    <td align="center"><sub><b>Language</b><br>Four languages</sub></td>
     <td align="center"><sub><b>French</b><br>Sorted by translated name</sub></td>
   </tr>
 </table>
@@ -40,6 +44,10 @@ fetched, so the app works on a plane and costs nothing to run.
 > visible difference on iOS is the tab bar, which is a native `UITabBar` with SF
 > Symbol icons rather than the text-only bar the web renderer draws. Everything
 > else is the same code.
+>
+> The scan shot is a real render of a real verdict, but the product came from a
+> recorded Open Food Facts entry rather than a camera, because the machine that
+> takes these screenshots does not have one.
 
 ## What it does
 
@@ -49,6 +57,8 @@ fetched, so the app works on a plane and costs nothing to run.
 - **Shopping** — every ingredient for the week rolled into one list, grouped by
   supermarket aisle, with quantities added up across recipes and ticks that
   persist. Switch between this week and next week to shop ahead.
+- **Scan** — point the camera at a barcode on a packet and get a keto verdict,
+  with the figures and the reasoning behind it.
 - **Saved** — tap the heart on any recipe to keep it, grouped by meal.
 - **Settings** — language, dietary filters, a daily net-carb target, which meals
   to plan, which day the week starts on, and an optional weekly reminder.
@@ -279,6 +289,61 @@ the carb budget is dropped before the diet flags are — running a few grams ove
 is a smaller betrayal than serving someone the food they excluded — and the app
 says on the plan screen when either has happened.
 
+## The barcode scanner
+
+Point the camera at a barcode. The app looks the product up in
+[Open Food Facts](https://world.openfoodfacts.org) — free, open data, no key and
+no account — and turns the label into one of four answers: **keto-friendly**,
+**borderline**, **not keto**, or **not enough information**, always with the
+reasons shown underneath.
+
+### How the verdict is reached
+
+Two signals, combined:
+
+| Signal | Good | Borderline | Bad |
+| --- | --- | --- | --- |
+| Carbs per 100 g | ≤ 5 g | ≤ 10 g | over 10 g |
+| Carbs per serving | ≤ 25% of your daily target | ≤ 50% | over 50% |
+
+The two are **averaged**, rounding towards caution, rather than letting either
+win. That matters in both directions: a dense food sold in tiny pieces comes out
+*borderline* rather than a free pass, and a mild food with a huge serving comes
+out borderline rather than a green light. Peanut butter is the classic case —
+12 g per 100 g is too dense to be a staple, but a 30 g spoonful is only 3.7 g.
+
+Two things override the arithmetic: sugars above 5 g per 100 g, and sugar
+appearing among the first three ingredients. Either forces *not keto*, because
+both are the signature of a product sweetened to compensate for something else.
+Sugar alcohols are deliberately not flagged — erythritol and allulose are what
+keto products are *supposed* to be sweetened with.
+
+### Why the verdict uses stated carbohydrate, not net carbs
+
+"Net carbs" means carbohydrate minus fibre, and whether that subtraction is
+correct depends on who printed the label. US labels put fibre *inside* total
+carbohydrate, so subtracting is right. The EU, the UK, the Gulf and Australia
+already state carbohydrate with fibre excluded, so subtracting again
+double-counts and flatters the food.
+
+Open Food Facts records whatever the label said and does not reliably say which
+convention it followed. The two failure directions are not equal — understating
+carbs tells someone a food is keto when it is not — so the verdict runs on the
+stated figure, which is either correct or conservative. Net carbs are still
+calculated and shown; they never soften the verdict.
+
+### What it cannot do
+
+- **Coverage is uneven.** European products are well covered; Gulf and Middle
+  Eastern shelves much less so. "Not in the database" is a normal outcome.
+- **The data is community-contributed** and can be wrong or stale. The app says
+  so under every result. The pack in your hand is the authority.
+- **It needs internet.** There is no offline copy of the world's packaged food.
+
+`src/lib/keto-verdict.ts` holds the rules and is pure — no camera, no network,
+no React — so `npm run verify` exercises every one of them, along with the
+parsing of malformed Open Food Facts entries, without a device.
+
 ## The look
 
 Cream paper, ink, one green, and a colour per meal.
@@ -322,7 +387,8 @@ src/
   data/
     types.ts           Recipe / Ingredient / Macros
     recipes/           the bundled library, one file per meal slot
-  lib/                 pure logic: plan, shopping, week maths, rng, storage
+  lib/                 pure logic: plan, shopping, week maths, rng, storage,
+                       keto verdicts, Open Food Facts lookup
   store/               app state + AsyncStorage persistence
 scripts/
   check-contrast.js    holds the palette to WCAG contrast ratios
@@ -356,6 +422,10 @@ to fill a week without repeating.
   which would give up the offline guarantee.
 - **Macros are estimates.** They are per serving, hand-entered, and rounded.
   Treat them as a guide, not a measurement.
+- **The scanner is only as good as the database.** It reads Open Food Facts
+  entries, not the pack in front of you, so a wrong or missing entry produces a
+  wrong or missing answer. It is a shortcut for reading the label, not a
+  replacement for it.
 - **Not medical advice.** A ketogenic diet is not appropriate for everyone.
   Talk to a doctor or dietitian before making a significant dietary change,
   particularly if you are pregnant, diabetic, or taking medication.

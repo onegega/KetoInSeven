@@ -42,6 +42,11 @@ export default function TabsLayout() {
         <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="scan">
+        <Label>{t('tab.scan')}</Label>
+        <Icon sf={{ default: 'barcode.viewfinder', selected: 'barcode.viewfinder' }} />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="saved">
         <Label>{t('tab.saved')}</Label>
         <Icon sf={{ default: 'heart', selected: 'heart.fill' }} />
