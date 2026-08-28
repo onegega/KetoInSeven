@@ -219,7 +219,7 @@ function Section({
         {title}
       </ThemedText>
 
-      <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
         {children}
       </View>
 
@@ -286,7 +286,6 @@ function OptionPill({
         styles.pill,
         {
           backgroundColor: active ? theme.accent : theme.surfaceAlt,
-          borderColor: active ? theme.accent : theme.border,
         },
         pressed && styles.pressed,
       ]}>
@@ -323,8 +322,7 @@ const styles = StyleSheet.create({
   section: { gap: Spacing.two },
   sectionTitle: { letterSpacing: 0.8, fontSize: 11, lineHeight: 14 },
   card: {
-    borderRadius: Radius.large,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: Radius.xlarge,
     overflow: 'hidden',
   },
   footer: { paddingHorizontal: Spacing.half, fontSize: 12, lineHeight: 17 },
@@ -348,7 +346,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingVertical: Spacing.two,
     borderRadius: Radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
   },
   pressed: { opacity: 0.7 },
   aboutRow: { padding: Spacing.three },

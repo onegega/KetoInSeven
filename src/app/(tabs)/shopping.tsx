@@ -67,7 +67,7 @@ export default function ShoppingScreen() {
           </ThemedText>
         </View>
 
-        <View style={[styles.segmented, { backgroundColor: theme.surfaceAlt, borderColor: theme.border }]}>
+        <View style={[styles.segmented, { backgroundColor: theme.surfaceAlt }]}>
           <SegmentButton
             label={t('shopping.thisWeek')}
             active={weekOffset === 0}
@@ -80,7 +80,7 @@ export default function ShoppingScreen() {
           />
         </View>
 
-        <View style={[styles.progress, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.progress, { backgroundColor: theme.surface }]}>
           <View style={styles.progressRow}>
             <ThemedText type="smallBold">{t('shopping.progress', { done, total })}</ThemedText>
 
@@ -120,7 +120,7 @@ export default function ShoppingScreen() {
                 {t(AISLE_KEY[section.aisle]).toUpperCase()}
               </ThemedText>
 
-              <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.card, { backgroundColor: theme.surface }]}>
                 {section.items.map((item, index) => (
                   <ShoppingRow
                     key={item.key}
@@ -244,7 +244,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     padding: 3,
     borderRadius: Radius.medium,
-    borderWidth: StyleSheet.hairlineWidth,
     gap: 3,
   },
   segment: {
@@ -255,7 +254,6 @@ const styles = StyleSheet.create({
   },
   progress: {
     borderRadius: Radius.medium,
-    borderWidth: StyleSheet.hairlineWidth,
     padding: Spacing.three,
     gap: Spacing.two,
   },
@@ -264,7 +262,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: Radius.pill },
   section: { gap: Spacing.two },
   sectionTitle: { letterSpacing: 0.8, fontSize: 11, lineHeight: 14 },
-  card: { borderRadius: Radius.large, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  card: { borderRadius: Radius.xlarge, overflow: 'hidden' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

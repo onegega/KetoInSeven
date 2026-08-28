@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const Module = require('node:module');
 const os = require('node:os');
 const path = require('node:path');
+const { evaluate: evaluateContrast } = require('./check-contrast');
 
 const ROOT = path.join(__dirname, '..');
 const OUT = fs.mkdtempSync(path.join(os.tmpdir(), 'ketoinseven-verify-'));
@@ -75,6 +76,8 @@ function loadModules() {
     ...require(path.join(build, 'lib/shopping.js')),
     ...require(path.join(build, 'lib/preferences.js')),
     ...require(path.join(build, 'lib/week.js')),
+    ...require(path.join(build, 'lib/keto-verdict.js')),
+    ...require(path.join(build, 'lib/food-facts.js')),
   };
 }
 
@@ -109,6 +112,9 @@ function run(api) {
     startOfWeek,
     weekIdFor,
     toDateId,
+    ketoVerdict,
+    findSugars,
+    normaliseProduct,
   } = api;
 
   const MEAL_SLOTS = ['breakfast', 'lunch', 'dinner'];
@@ -323,6 +329,128 @@ function run(api) {
       .filter(([, v]) => !v.title.trim() || !v.blurb.trim() || v.steps.some((s) => !s.trim()))
       .map(([k]) => k);
     check(`${locale}: no blank recipe text`, emptyStrings.length === 0, emptyStrings.join(', '));
+  }
+
+  heading('Keto verdicts');
+  {
+    // A generous but ordinary daily budget, so the portion rule has room to
+    // disagree with the density rule rather than failing everything.
+    const LIMIT = 25;
+    const verdictOf = (nutrition, ingredients) =>
+      ketoVerdict(nutrition, LIMIT, ingredients).verdict;
+
+    check(
+      'butter is keto',
+      verdictOf({ carbs100g: 0.1, servingGrams: 10 }) === 'keto'
+    );
+    check(
+      'white bread is not',
+      verdictOf({ carbs100g: 49, sugars100g: 4, servingGrams: 40 }) === 'avoid'
+    );
+    check(
+      'a dense food in a tiny serving lands on borderline, not either extreme',
+      verdictOf({ carbs100g: 22, servingGrams: 15 }) === 'borderline'
+    );
+    check(
+      'a mild food in a large serving lands on borderline too',
+      verdictOf({ carbs100g: 4, servingGrams: 170 }) === 'borderline'
+    );
+    check(
+      'no carbohydrate figure means no verdict',
+      verdictOf({ fat100g: 20, servingGrams: 30 }) === 'unknown'
+    );
+
+    // Sugar in the first few ingredients overrides a flattering density: this
+    // is exactly the shape of a "low fat" product sweetened to compensate.
+    check(
+      'sugar as a leading ingredient overrides a low density',
+      verdictOf({ carbs100g: 4.5, servingGrams: 20 }, 'water, sugar, cocoa butter') === 'avoid'
+    );
+    check(
+      'sugar further down the list only downgrades to borderline',
+      verdictOf({ carbs100g: 3, servingGrams: 20 }, 'almonds, cocoa, salt, sugar') === 'borderline'
+    );
+    check(
+      '"sugar-free" is not read as sugar',
+      verdictOf({ carbs100g: 2, servingGrams: 20 }, 'sugar-free chocolate, erythritol') === 'keto'
+    );
+    check(
+      'erythritol and allulose are not treated as sugars',
+      findSugars('almonds, erythritol, allulose, cocoa').length === 0
+    );
+    check(
+      'a syrup under another name is still sugar',
+      findSugars('oats, glucose syrup, maltodextrin').length === 2
+    );
+    check(
+      'high sugars sink an otherwise borderline density',
+      verdictOf({ carbs100g: 9, sugars100g: 8, servingGrams: 20 }) === 'avoid'
+    );
+
+    // The stated figure is what the verdict uses; fibre only ever adds context.
+    // See the note at the top of src/lib/keto-verdict.ts for why.
+    const highFibre = ketoVerdict({ carbs100g: 20, fibre100g: 16, servingGrams: 30 }, LIMIT);
+    check('fibre is reported as net carbs', highFibre.netCarbs100g === 4);
+    check('but the verdict still reads the stated carbohydrate', highFibre.verdict !== 'keto');
+
+    const perServing = ketoVerdict({ carbs100g: 10, servingGrams: 30 }, LIMIT);
+    check('carbs per serving are scaled from 100 g', perServing.carbsPerServing === 3);
+    check('every verdict explains itself', perServing.reasons.length > 0);
+  }
+
+  heading('Open Food Facts parsing');
+  {
+    // Entries are community-edited, so every field here has been seen both
+    // clean and malformed in the wild. The lookup itself needs a network and
+    // cannot be exercised here; the parsing can.
+    const clean = normaliseProduct('737628064502', {
+      product_name: 'Peanut Butter',
+      brands: 'Acme',
+      quantity: '340 g',
+      serving_quantity: 32,
+      nutriments: { carbohydrates_100g: 20, fiber_100g: 6, sugars_100g: 9, proteins_100g: 25 },
+      ingredients_text: 'peanuts, salt',
+    });
+    check('a clean entry parses', clean.name === 'Peanut Butter' && clean.brand === 'Acme');
+    check('serving quantity is read', clean.nutrition.servingGrams === 32);
+    check('nutriments are read', clean.nutrition.carbs100g === 20 && clean.nutrition.fibre100g === 6);
+
+    const stringy = normaliseProduct('1', {
+      nutriments: { carbohydrates_100g: '4.5', sugars_100g: '0' },
+      serving_size: '30 g (about 12 crisps)',
+    });
+    check('numeric strings are accepted', stringy.nutrition.carbs100g === 4.5);
+    check('zero is kept, not treated as missing', stringy.nutrition.sugars100g === 0);
+    check('a serving size is read out of free text', stringy.nutrition.servingGrams === 30);
+
+    const junk = normaliseProduct('2', {
+      product_name: '   ',
+      nutriments: { carbohydrates_100g: 'unknown', fiber_100g: -3 },
+      serving_size: 'one biscuit',
+    });
+    check('an unparseable nutriment is left undefined', junk.nutrition.carbs100g === undefined);
+    check('a negative nutriment is rejected', junk.nutrition.fibre100g === undefined);
+    check('a serving size with no number is left undefined', junk.nutrition.servingGrams === undefined);
+    check('a blank name is left undefined', junk.name === undefined);
+
+    const bare = normaliseProduct('3', {});
+    check('an entry with no nutriments still parses', bare.barcode === '3');
+    check('and yields no verdict rather than a wrong one', ketoVerdict(bare.nutrition, 25).verdict === 'unknown');
+
+    check(
+      'a millilitre serving is read like a gram one',
+      normaliseProduct('4', { serving_size: '250 ml' }).nutrition.servingGrams === 250
+    );
+  }
+
+  heading('Colour contrast');
+  for (const { scheme, results } of evaluateContrast()) {
+    const bad = results.filter((r) => r.ratio < r.min);
+    check(
+      `${scheme}: all ${results.length} colour pairings meet contrast`,
+      bad.length === 0,
+      bad.map((r) => `${r.fg} on ${r.bg} ${r.ratio.toFixed(2)}:1 < ${r.min}:1`).join('; ')
+    );
   }
 
   heading('Week maths');
