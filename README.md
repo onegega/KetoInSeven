@@ -415,6 +415,63 @@ npm run lint
 if it is not actually keto, or if a dietary filter no longer has enough recipes
 to fill a week without repeating.
 
+## Troubleshooting
+
+### After any `git pull`, reinstall with `npm ci`
+
+Almost every strange failure in this project has had the same root cause: a
+`node_modules` that only half-matches the commit you are on.
+
+`npm install` over an existing tree does not reliably reconcile it. When a
+commit adds, removes or repins a dependency, you can end up with two copies of
+a package at different versions, or the old copy still in place — and Metro
+caches the result in `.expo` on top of that.
+
+```bash
+rm -rf node_modules .expo
+npm ci
+npx expo start -c
+```
+
+`npm ci` deletes `node_modules` and installs the lockfile exactly, which is
+what makes it reproducible where `npm install` is not. The `-c` clears Metro's
+cache, which holds its own stale copy of the bundle.
+
+### `TypeError: _reactJsxDevRuntime.jsxDEV is not a function`
+
+Two different copies of React are in the tree. The compiled JSX imports
+`react/jsx-dev-runtime` and gets a copy that does not export `jsxDEV`.
+
+It surfaces on the **web** build only, and usually with a stack trace through
+`expo-router/build/static/renderStaticContent.js` and
+`MetroBundlerDevServer.getStaticPageAsync`. That path exists because `app.json`
+sets `web.output: "static"`, which pre-renders every route in Node. The iOS app
+does not go through it and is unaffected.
+
+The fix is the clean reinstall above. To confirm afterwards that there is only
+one React:
+
+```bash
+find node_modules -maxdepth 5 -type d -path "*node_modules/react" | wc -l
+```
+
+One is correct. (A vendored React inside
+`node_modules/expo/node_modules/@expo/cli/static/` is normal and does not count
+— that is the CLI's own copy for static rendering, and the `-maxdepth 5` above
+excludes it.)
+
+### "Project is incompatible with this version of Expo Go"
+
+A different flavour of the same problem, with its own diagnosis and its own
+guard: see [Expo Go](#1-expo-go--free-about-five-minutes) above, and run
+`npm run check-sdk`.
+
+### The web build is optional
+
+Nothing about running KetoInSeven on a phone needs the web build. It exists so
+the screenshots in this README can be generated on a machine with no simulator.
+If web is broken and the phone is not, you can ignore it.
+
 ## Known limits
 
 - **No photos.** Recipes are identified by an emoji and a colour tile. Adding
