@@ -243,6 +243,52 @@ function run(api) {
   }
   info(`${countItems(sections)} lines across ${sections.length} aisles`);
 
+  // Scaling is checked against hand-built recipes rather than the library, so
+  // the expected numbers are exact instead of "roughly bigger than before".
+  const fakeRecipe = (id, servings, ingredients) => ({
+    id,
+    servings,
+    ingredients: ingredients.map((i) => ({ aisle: 'Pantry', note: undefined, ...i })),
+  });
+  const lineFor = (built, name) =>
+    built.flatMap((section) => section.items).find((item) => item.name === name);
+
+  const trayBake = fakeRecipe('tray', 8, [
+    { name: 'beef', qty: 1600, unit: 'g' },
+    { name: 'eggs', qty: 8, unit: '' },
+    { name: 'salt', qty: null, unit: 'to taste' },
+  ]);
+
+  const forOne = buildShoppingList([trayBake], 1);
+  check('one person takes one serving of a recipe written for eight', lineFor(forOne, 'beef').qty === 200);
+  check('countables round up rather than down', lineFor(forOne, 'eggs').qty === 1);
+  check('"to taste" stays unmeasured at any household size', lineFor(forOne, 'salt').qty === null);
+
+  const forFour = buildShoppingList([trayBake], 4);
+  check('four people take four servings', lineFor(forFour, 'beef').qty === 800);
+  check('and four eggs', lineFor(forFour, 'eggs').qty === 4);
+
+  // Rounding once at the end, not per recipe: three recipes each needing a
+  // third of an onion is one onion, not three.
+  const third = (id) => fakeRecipe(id, 3, [{ name: 'onion', qty: 1, unit: '' }]);
+  check(
+    'rounding happens after merging, not per recipe',
+    lineFor(buildShoppingList([third('a'), third('b'), third('c')], 1), 'onion').qty === 1
+  );
+
+  // Spoons keep quarters so they can still render as fractions; grams do not.
+  const spoons = buildShoppingList(
+    [fakeRecipe('s', 2, [{ name: 'oil', qty: 3, unit: 'tbsp' }, { name: 'flour', qty: 125, unit: 'g' }])],
+    1
+  );
+  check('spoon measures keep quarters', formatAmount(lineFor(spoons, 'oil')) === '1½ tbsp');
+  check('weights round to whole units', lineFor(spoons, 'flour').qty === 63);
+
+  check(
+    'a scaled-away ingredient still appears rather than vanishing',
+    lineFor(buildShoppingList([fakeRecipe('t', 8, [{ name: 'yeast', qty: 2, unit: 'g' }])], 1), 'yeast').qty === 1
+  );
+
   heading('Translations');
   const { DICTIONARIES, LOCALES, recipeLocales } = api;
   const englishKeys = Object.keys(DICTIONARIES.en);

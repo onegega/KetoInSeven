@@ -56,7 +56,8 @@ one that stops working without one.
   past and future weeks; *Shuffle* regenerates the current one.
 - **Shopping** — every ingredient for the week rolled into one list, grouped by
   supermarket aisle, with quantities added up across recipes and ticks that
-  persist. Switch between this week and next week to shop ahead.
+  persist. Set how many people you are shopping for and the amounts scale.
+  Switch between this week and next week to shop ahead.
 - **Scan** — point the camera at a barcode on a packet and get a keto verdict,
   with the figures and the reasoning behind it.
 - **Saved** — tap the heart on any recipe to keep it, grouped by meal.
@@ -288,6 +289,39 @@ Eligibility is diet flags first, carb budget second. If too few recipes match,
 the carb budget is dropped before the diet flags are — running a few grams over
 is a smaller betrayal than serving someone the food they excluded — and the app
 says on the plan screen when either has happened.
+
+## Scaling the shopping list
+
+The **Shopping for** stepper at the top of the list sets how many people the
+quantities cover. It changes amounts only — the plan is one person's meals, and
+everyone eating from it eats the same thing, so it does not reshuffle the week.
+
+Each recipe states the servings its ingredient amounts are written for, and the
+plan hands one person one serving. So one person needs `1 / servings` of a
+recipe: half a dinner written for two, an eighth of a tray bake written for
+eight. Multiply by the number of people and you have the line.
+
+Rounding happens **once**, after every recipe has contributed, and by unit:
+
+| Unit | Rounds to | Why |
+| --- | --- | --- |
+| Countable — eggs, cloves, sticks | up, to a whole one | You cannot buy 4½ eggs, and being one short is worse than having one spare. |
+| `g`, `ml` | nearest whole | 83.33 g is a number no scale and no packet will help you with. |
+| `tbsp`, `tsp`, cups | nearest quarter | So it can still render as ¼ ½ ¾, which is how spoons are actually measured. |
+
+Rounding once at the end is what makes three recipes each wanting a third of an
+onion come to one onion rather than three.
+
+> **This changed the list.** Before the stepper existed, every recipe
+> contributed its ingredients in full whatever its batch size — so a recipe
+> serving eight put eight servings of shopping in the basket for one person's
+> dinner, and the over-buying was worst for exactly the largest recipes. The
+> list is now per person and starts at one, so it is smaller than it used to
+> be. Set the stepper to your household and it is right again.
+
+One limitation worth knowing: scaling a large-batch recipe down gives you a
+proportionally smaller batch, and some dishes do not cook well that way. For
+those, buy the round-numbered amount and enjoy the leftovers.
 
 ## The barcode scanner
 

@@ -73,25 +73,63 @@ function pluraliseUnit(unit: string, qty: number): string {
 
 const itemKey = (name: string, unit: string) => `${name}::${singulariseUnit(unit)}`;
 
+/** How many people the list is built for when the caller does not say. */
+export const DEFAULT_PEOPLE = 1;
+
+/**
+ * Rounds a merged quantity to something you can actually put in a basket.
+ *
+ * Scaling by household size produces figures like 4.5 eggs and 83.33 g, which
+ * are true and useless. Each family of units gets the precision it can be
+ * bought at, and countables round *up* — being one egg short is worse than
+ * having one spare.
+ */
+function roundForShopping(qty: number, unit: string): number {
+  const canonical = singulariseUnit(unit).toLowerCase();
+  const lastWord = canonical.split(' ').pop() ?? '';
+
+  if (canonical === '' || COUNTABLE_UNITS.includes(lastWord)) return Math.max(1, Math.ceil(qty));
+
+  // Weights and volumes are sold and weighed in whole units.
+  if (canonical === 'g' || canonical === 'ml') return Math.max(1, Math.round(qty));
+
+  // Spoons and cups keep quarters, which formatQuantity renders as ¼ ½ ¾.
+  return Math.max(0.25, Math.round(qty * 4) / 4);
+}
+
 /**
  * Rolls a set of recipes into one list, merging ingredients that share a name
  * and unit. Different units for the same ingredient stay on separate lines
  * rather than being converted — guessing that 1 tbsp of oil is 15ml is the kind
  * of silent conversion that makes a shopping list untrustworthy.
+ *
+ * Quantities are scaled to `people`. A recipe's ingredient amounts are written
+ * for its own `servings`, and the plan hands one person one serving of it, so
+ * the share of a recipe that one person needs is `1 / servings` — an eighth of
+ * a tray bake written for eight, half of a dinner written for two. Without
+ * that division the list buys the whole recipe whatever its batch size, which
+ * silently over-buys most for exactly the recipes that are already the
+ * largest.
+ *
+ * Rounding happens once, after every recipe has contributed, so that eight
+ * sixths of an onion becomes two onions rather than eight ones.
  */
-export function buildShoppingList(recipes: Recipe[]): ShoppingSection[] {
+export function buildShoppingList(recipes: Recipe[], people = DEFAULT_PEOPLE): ShoppingSection[] {
   const merged = new Map<string, ShoppingItem>();
 
   for (const recipe of recipes) {
+    const share = people / recipe.servings;
+
     for (const ingredient of recipe.ingredients) {
       const key = itemKey(ingredient.name, ingredient.unit);
+      const scaled = ingredient.qty === null ? null : ingredient.qty * share;
       const existing = merged.get(key);
 
       if (existing) {
         existing.qty =
-          existing.qty === null || ingredient.qty === null
-            ? existing.qty ?? ingredient.qty
-            : existing.qty + ingredient.qty;
+          existing.qty === null || scaled === null
+            ? existing.qty ?? scaled
+            : existing.qty + scaled;
         if (!existing.usedIn.includes(recipe.id)) existing.usedIn.push(recipe.id);
         continue;
       }
@@ -100,11 +138,15 @@ export function buildShoppingList(recipes: Recipe[]): ShoppingSection[] {
         key,
         name: ingredient.name,
         unit: singulariseUnit(ingredient.unit),
-        qty: ingredient.qty,
+        qty: scaled,
         aisle: ingredient.aisle,
         usedIn: [recipe.id],
       });
     }
+  }
+
+  for (const item of merged.values()) {
+    if (item.qty !== null) item.qty = roundForShopping(item.qty, item.unit);
   }
 
   // Sorted by the English name here only for a stable default; the screen

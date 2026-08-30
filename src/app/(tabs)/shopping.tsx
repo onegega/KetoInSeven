@@ -19,6 +19,7 @@ import {
   formatAmount,
   type ShoppingItem,
 } from '@/lib/shopping';
+import { MAX_PEOPLE, MIN_PEOPLE } from '@/lib/preferences';
 import { useApp } from '@/store/app-provider';
 import { addDays, formatWeekRange, startOfWeek } from '@/lib/week';
 
@@ -26,7 +27,8 @@ export default function ShoppingScreen() {
   const theme = useTheme();
   const { t, meta } = useTranslation();
   const recipeText = useRecipeText();
-  const { preferences, planFor, isChecked, toggleChecked, clearChecked } = useApp();
+  const { preferences, updatePreferences, planFor, isChecked, toggleChecked, clearChecked } =
+    useApp();
   const [weekOffset, setWeekOffset] = useState<0 | 1>(0);
 
   const weekStart = useMemo(
@@ -38,14 +40,14 @@ export default function ShoppingScreen() {
   const sections = useMemo(() => {
     // Re-sorted by the translated name so the list still reads alphabetically
     // in the selected language rather than in English order.
-    const built = buildShoppingList(allPlanRecipes(plan));
+    const built = buildShoppingList(allPlanRecipes(plan), preferences.people);
     return built.map((section) => ({
       ...section,
       items: [...section.items].sort((a, b) =>
         recipeText.ingredientName(a.name).localeCompare(recipeText.ingredientName(b.name), meta.tag)
       ),
     }));
-  }, [plan, recipeText, meta.tag]);
+  }, [plan, preferences.people, recipeText, meta.tag]);
 
   const total = countItems(sections);
   const done = sections.reduce(
@@ -78,6 +80,36 @@ export default function ShoppingScreen() {
             active={weekOffset === 1}
             onPress={() => setWeekOffset(1)}
           />
+        </View>
+
+        {/* Sits above the progress card because it changes what the list *is*,
+            not how much of it is done. */}
+        <View style={[styles.people, { backgroundColor: theme.surface }]}>
+          <View style={styles.peopleText}>
+            <ThemedText themeColor="textMuted" style={styles.peopleLabel}>
+              {t('shopping.forPeople')}
+            </ThemedText>
+            <ThemedText style={styles.peopleValue}>
+              {t(preferences.people === 1 ? 'shopping.peopleOne' : 'shopping.peopleMany', {
+                count: preferences.people,
+              })}
+            </ThemedText>
+          </View>
+
+          <View style={styles.stepper}>
+            <StepButton
+              icon="remove"
+              label={t('shopping.fewerPeople')}
+              disabled={preferences.people <= MIN_PEOPLE}
+              onPress={() => updatePreferences({ people: preferences.people - 1 })}
+            />
+            <StepButton
+              icon="add"
+              label={t('shopping.morePeople')}
+              disabled={preferences.people >= MAX_PEOPLE}
+              onPress={() => updatePreferences({ people: preferences.people + 1 })}
+            />
+          </View>
         </View>
 
         <View style={[styles.progress, { backgroundColor: theme.surface }]}>
@@ -231,6 +263,41 @@ function SegmentButton({
   );
 }
 
+function StepButton({
+  icon,
+  label,
+  disabled,
+  onPress,
+}: {
+  icon: React.ComponentProps<typeof Ionicons>['name'];
+  label: string;
+  disabled: boolean;
+  onPress: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
+      disabled={disabled}
+      hitSlop={6}
+      onPress={() => {
+        if (Platform.OS !== 'web') void Haptics.selectionAsync();
+        onPress();
+      }}
+      style={({ pressed }) => [
+        styles.step,
+        { backgroundColor: theme.surfaceAlt },
+        disabled && styles.stepDisabled,
+        pressed && !disabled && styles.pressed,
+      ]}>
+      <Ionicons name={icon} size={20} color={disabled ? theme.textMuted : theme.text} />
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Spacing.three,
@@ -252,6 +319,33 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.two,
     borderRadius: Radius.small + 2,
   },
+  people: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: Radius.xlarge,
+    paddingVertical: Spacing.two + 2,
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.three,
+  },
+  peopleText: { gap: 1 },
+  peopleLabel: {
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: '800',
+    letterSpacing: 0.7,
+    textTransform: 'uppercase',
+  },
+  peopleValue: { fontSize: 18, lineHeight: 23, fontWeight: '800' },
+  stepper: { flexDirection: 'row', gap: Spacing.two },
+  step: {
+    width: 40,
+    height: 40,
+    borderRadius: Radius.pill,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepDisabled: { opacity: 0.4 },
   progress: {
     borderRadius: Radius.medium,
     padding: Spacing.three,
